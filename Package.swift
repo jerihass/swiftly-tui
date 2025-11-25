@@ -9,7 +9,7 @@ let swiftSettings = [
 let package = Package(
     name: "swiftly",
     platforms: [
-        .macOS(.v13),
+        .macOS(.v14),
     ],
     products: [
         .executable(
