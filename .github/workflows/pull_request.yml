@@ -191,3 +191,18 @@ jobs:
           path: .build/docs/**
           if-no-files-found: error
           retention-days: 1
+
+  tui-tests-matrix:
+    name: TUI Tests / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Prepare the action
+        run: ./scripts/prep-gh-action.sh --install-swiftly
+      - name: Run TUI test suite
+        run: swift test --filter TUITests

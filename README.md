@@ -51,6 +51,20 @@ For more detailed usage guides there is [documentation](https://swiftpackageinde
 
 swiftly is supported on Linux and macOS. For more detailed information about swiftly's intended features and implementation, check out the [design document](DESIGN.md).
 
+## Testing (including TUI)
+
+Run the full suite locally on macOS:
+
+```bash
+swift test
+```
+
+To mirror CI's Linux leg for the TUI suite from macOS, use Docker:
+
+```bash
+docker run --rm -v "$PWD":/work -w /work swift:6.0.3 swift test --filter TUITests
+```
+
 ## Updating swiftly
 
 This command checks to see if there are new versions of swiftly itself and upgrades to them if possible.
