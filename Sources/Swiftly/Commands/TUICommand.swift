@@ -1,4 +1,5 @@
 import ArgumentParser
+import SwifTeaUI
 import SwiftlyCore
 
 struct TUICommand: SwiftlyCommand {
@@ -12,8 +13,7 @@ struct TUICommand: SwiftlyCommand {
 
     mutating func run(_ ctx: SwiftlyCoreContext) async throws {
         _ = global
-        // TODO: integrate SwifTeaUI host and render RootMenuView with CoreActionsController.
-        // Placeholder to indicate command is reachable.
-        await ctx.message("TUI coming soon. Run swiftly tui after implementation.")
+        let app = SwiftlyTUIApplication(ctx: ctx)
+        SwifTea.brew(app)
     }
 }
