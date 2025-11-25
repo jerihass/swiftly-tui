@@ -6,4 +6,5 @@ xcuserdata/
 DerivedData/
 .swiftpm/
 .vscode/
+.codex/
 **/*.swp
