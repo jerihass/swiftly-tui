@@ -5,6 +5,11 @@
 **Status**: Draft  
 **Input**: User description: "TUI interface for handling user interaction with core functions."
 
+## Clarifications
+
+### Session 2025-11-25
+- Q: Which TUI library and branch must be used? → A: SwifTeaUI from branch `main`; note any missing components for follow-up library updates.
+
 ## User Scenarios & Testing *(mandatory)*
 
 <!--
@@ -96,6 +101,7 @@ Users need the TUI to handle failures (network issues, invalid toolchain names, 
 - **FR-005**: The TUI MUST validate user selections and inputs, preventing actions on unknown toolchains and offering valid alternatives.
 - **FR-006**: The TUI MUST provide retry or cancel options after any failed operation without leaving the session.
 - **FR-007**: The TUI MUST remain usable without a mouse (arrow keys, tabs, shortcuts) and maintain readable layout at 80x24 terminals.
+- **FR-008**: The TUI MUST be built with SwifTeaUI (branch `main`); any missing widgets or components needed for functionality are documented for upstream updates.
 
 ### Key Entities *(include if feature involves data)*
 
