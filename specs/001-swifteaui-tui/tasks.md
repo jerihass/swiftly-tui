@@ -43,14 +43,17 @@
 - [ ] T010 [P] [US1] Scene unit tests for list rendering and selection in Tests/TUITests/ListingViewTests.swift
 - [ ] T011 [P] [US1] Integration test for list → detail → switch flow in Tests/TUITests/CoreActionsFlowTests.swift
 - [ ] T012 [P] [US1] Keyboard navigation tests (numbers/arrows/enter/q) in Tests/TUITests/MenuNavigationTests.swift
+- [ ] T013 [P] [US1] Empty-state rendering and guidance test in Tests/TUITests/ListingViewTests.swift
+- [ ] T014 [P] [US1] Headless navigation timing test (<60s path to switch) in Tests/TUITests/PerformanceTests.swift
 
 ### Implementation for User Story 1
 
-- [ ] T013 [P] [US1] Build SwifTeaUI list scene (menu + toolchain list) in Sources/Swiftly/TUI/Views/ToolchainListView.swift
-- [ ] T014 [P] [US1] Build detail scene with active indicator and actions in Sources/Swiftly/TUI/Views/ToolchainDetailView.swift
-- [ ] T015 [US1] Implement switch action with confirmation and success summary in Sources/Swiftly/TUI/Controllers/CoreActionsController.swift
-- [ ] T016 [US1] Wire keyboard navigation (numbers/arrows/enter/q) in Sources/Swiftly/TUI/TUIApplication.swift
-- [ ] T017 [US1] Update quickstart with US1 verification steps in specs/001-swifteaui-tui/quickstart.md
+- [ ] T015 [P] [US1] Build SwifTeaUI list scene (menu + toolchain list) in Sources/Swiftly/TUI/Views/ToolchainListView.swift
+- [ ] T016 [P] [US1] Build detail scene with active indicator and actions in Sources/Swiftly/TUI/Views/ToolchainDetailView.swift
+- [ ] T017 [US1] Implement switch action with confirmation and success summary in Sources/Swiftly/TUI/Controllers/CoreActionsController.swift
+- [ ] T018 [US1] Wire keyboard navigation (numbers/arrows/enter/q) in Sources/Swiftly/TUI/TUIApplication.swift
+- [ ] T019 [US1] Update quickstart with US1 verification steps in specs/001-swifteaui-tui/quickstart.md
+- [ ] T020 [US1] Add empty-state handling/guidance in Sources/Swiftly/TUI/Views/ToolchainListView.swift
 
 **Checkpoint**: User Story 1 independently testable (list, detail, switch).
 
@@ -64,17 +67,19 @@
 
 ### Tests for User Story 2 (MANDATORY - add before implementation) ⚠️
 
-- [ ] T018 [P] [US2] Install flow progress and completion tests in Tests/TUITests/InstallFlowTests.swift
-- [ ] T019 [P] [US2] Update flow confirmation and summary tests in Tests/TUITests/UpdateFlowTests.swift
-- [ ] T020 [P] [US2] Remove flow guard (active toolchain) and confirmation tests in Tests/TUITests/RemoveFlowTests.swift
+- [ ] T021 [P] [US2] Install flow progress and completion tests in Tests/TUITests/InstallFlowTests.swift
+- [ ] T022 [P] [US2] Update flow confirmation and summary tests in Tests/TUITests/UpdateFlowTests.swift
+- [ ] T023 [P] [US2] Remove flow guard (active toolchain) and confirmation tests in Tests/TUITests/RemoveFlowTests.swift
+- [ ] T024 [P] [US2] Invalid identifier validation and messaging tests in Tests/TUITests/InstallFlowTests.swift
 
 ### Implementation for User Story 2
 
-- [ ] T021 [P] [US2] Implement install scene (default latest-stable + identifier input) with progress updates in Sources/Swiftly/TUI/Views/InstallView.swift
-- [ ] T022 [US2] Implement update scene with pre-change summary and progress in Sources/Swiftly/TUI/Views/UpdateView.swift
-- [ ] T023 [US2] Implement remove scene with active-check guard and confirmation in Sources/Swiftly/TUI/Views/RemoveView.swift
-- [ ] T024 [US2] Hook install/update/remove actions to CoreActionsAdapter with progress tick updates in Sources/Swiftly/TUI/Controllers/CoreActionsController.swift
-- [ ] T025 [P] [US2] Add contract assertions against tui-actions.yaml for install/update/remove in Tests/TUITests/Contract/TUIActionsContractTests.swift
+- [ ] T025 [P] [US2] Implement install scene (default latest-stable + identifier input) with progress updates in Sources/Swiftly/TUI/Views/InstallView.swift
+- [ ] T026 [US2] Implement update scene with pre-change summary and progress in Sources/Swiftly/TUI/Views/UpdateView.swift
+- [ ] T027 [US2] Implement remove scene with active-check guard and confirmation in Sources/Swiftly/TUI/Views/RemoveView.swift
+- [ ] T028 [US2] Hook install/update/remove actions to CoreActionsAdapter with progress tick updates in Sources/Swiftly/TUI/Controllers/CoreActionsController.swift
+- [ ] T029 [P] [US2] Add contract assertions against tui-actions.yaml for install/update/remove in Tests/TUITests/Contract/TUIActionsContractTests.swift
+- [ ] T030 [US2] Add identifier validation and user feedback for invalid inputs in Sources/Swiftly/TUI/Views/InstallView.swift
 
 **Checkpoint**: User Story 2 independently testable (install/update/remove with progress and summaries).
 
@@ -88,16 +93,16 @@
 
 ### Tests for User Story 3 (MANDATORY - add before implementation) ⚠️
 
-- [ ] T026 [P] [US3] Error view rendering and choices tests in Tests/TUITests/ErrorViewTests.swift
-- [ ] T027 [P] [US3] Recovery flow tests for interrupted install/update/remove in Tests/TUITests/RecoveryFlowTests.swift
-- [ ] T028 [P] [US3] Log path surfacing and retry/cancel branching tests in Tests/TUITests/OutputChannelTests.swift
+- [ ] T031 [P] [US3] Error view rendering and choices tests in Tests/TUITests/ErrorViewTests.swift
+- [ ] T032 [P] [US3] Recovery flow tests for interrupted install/update/remove in Tests/TUITests/RecoveryFlowTests.swift
+- [ ] T033 [P] [US3] Log path surfacing and retry/cancel branching tests in Tests/TUITests/OutputChannelTests.swift
 
 ### Implementation for User Story 3
 
-- [ ] T029 [P] [US3] Build SwifTeaUI error view with retry/cancel and log path display in Sources/Swiftly/TUI/Views/ErrorView.swift
-- [ ] T030 [US3] Add recovery controller to resume/abort operations and restore menu state in Sources/Swiftly/TUI/Controllers/OperationRecoveryController.swift
-- [ ] T031 [US3] Wire error routing from all actions to error view + recovery in Sources/Swiftly/TUI/TUIApplication.swift
-- [ ] T032 [US3] Ensure interrupted operations detect and handle pending state on next launch in Sources/Swiftly/TUI/Adapters/CoreActionsAdapter.swift
+- [ ] T034 [P] [US3] Build SwifTeaUI error view with retry/cancel and log path display in Sources/Swiftly/TUI/Views/ErrorView.swift
+- [ ] T035 [US3] Add recovery controller to resume/abort operations and restore menu state in Sources/Swiftly/TUI/Controllers/OperationRecoveryController.swift
+- [ ] T036 [US3] Wire error routing from all actions to error view + recovery in Sources/Swiftly/TUI/TUIApplication.swift
+- [ ] T037 [US3] Ensure interrupted operations detect and handle pending state on next launch in Sources/Swiftly/TUI/Adapters/CoreActionsAdapter.swift
 
 **Checkpoint**: User Story 3 independently testable (errors surfaced, retry/cancel stable, no crashes).
 
@@ -107,12 +112,12 @@
 
 **Purpose**: Hardening, docs, and cross-story validation
 
-- [ ] T033 [P] Add accessibility and keyboard focus cues to components in Sources/Swiftly/TUI/Views/AccessibilityStyles.swift
-- [ ] T034 [P] Add layout/list density adjustments and empty-state styling in Sources/Swiftly/TUI/Views/ListLayoutAdapter.swift
-- [ ] T035 Validate progress update cadence (≤5s) across flows with timer-based tests in Tests/TUITests/PerformanceTests.swift
-- [ ] T036 Update README TUI section with component-driven flows and usage in README.md
-- [ ] T037 Final cross-platform CI validation (macOS + Linux) via `swift test` and `swift run swiftly tui --assume-yes` smoke script in .github/workflows/pull_request.yml
-- [ ] T038 [P] Document SwifTeaUI gaps (if any) and fallbacks per FR-009 in docs or specs/001-swifteaui-tui/research.md
+- [ ] T038 [P] Add accessibility and keyboard focus cues to components in Sources/Swiftly/TUI/Views/AccessibilityStyles.swift
+- [ ] T039 [P] Add layout/list density adjustments and empty-state styling in Sources/Swiftly/TUI/Views/ListLayoutAdapter.swift
+- [ ] T040 Validate progress update cadence (≤5s) across flows with timer-based tests in Tests/TUITests/PerformanceTests.swift
+- [ ] T041 Update README TUI section with component-driven flows and usage in README.md
+- [ ] T042 Final cross-platform CI validation (macOS + Linux) via `swift test` and `swift run swiftly tui --assume-yes` smoke script in .github/workflows/pull_request.yml
+- [ ] T043 [P] Document SwifTeaUI gaps (if any) and fallbacks per FR-009 in docs or specs/001-swifteaui-tui/research.md
 
 ---
 
@@ -135,10 +140,10 @@
 
 - Setup: T003, T004 can run in parallel
 - Foundational: T006, T007, T008, T009 can run in parallel once models (T005) exist
-- US1 tests (T010–T012) can run in parallel; US1 views (T013–T014) in parallel
-- US2 tests (T018–T020) can run in parallel; US2 views (T021–T023) in parallel
-- US3 tests (T026–T028) can run in parallel; US3 error handling tasks (T029–T032) mostly sequential after error view exists
-- Polish: T033, T034, T038 can run in parallel
+- US1 tests (T010–T014) can run in parallel; US1 views (T015–T016) in parallel
+- US2 tests (T021–T024) can run in parallel; US2 views (T025–T027) in parallel
+- US3 tests (T031–T033) can run in parallel; US3 error handling tasks (T034–T037) mostly sequential after error view exists
+- Polish: T038, T039, T043 can run in parallel
 
 ---
 
@@ -148,7 +153,7 @@
 1. Complete Phase 1: Setup
 2. Complete Phase 2: Foundational
 3. Complete Phase 3: User Story 1
-4. Validate US1 independently (tests in T010–T012)
+4. Validate US1 independently (tests in T010–T014)
 
 ### Incremental Delivery
 1. Finish Setup + Foundational
