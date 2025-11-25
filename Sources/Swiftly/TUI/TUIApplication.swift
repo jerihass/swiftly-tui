@@ -7,6 +7,7 @@ struct SwiftlyTUIApplication: TUIScene {
         enum Screen: Equatable {
             case menu
             case list
+            case detail(ToolchainViewModel)
             case input(ActionType)
             case progress(String)
             case result(String)
@@ -37,6 +38,8 @@ struct SwiftlyTUIApplication: TUIScene {
         case cancelInput
         case loadList
         case listLoaded([ToolchainViewModel])
+        case selectIndex(Int)
+        case confirmSwitchFromDetail
         case runSwitch(String)
         case operationResult(String)
         case operationSession(OperationSessionViewModel)
@@ -135,9 +138,27 @@ struct SwiftlyTUIApplication: TUIScene {
                 SwifTea.dispatch(Action.listLoaded(list))
             }
         case .listLoaded(let list):
-            model.toolchains = list
+            model.toolchains = ListLayoutAdapter.sort(list)
             model.screen = .list
-            model.message = list.isEmpty ? "No installed toolchains." : "Installed toolchains."
+            model.message = list.isEmpty ? "No installed toolchains. Choose Install to add one." : "Installed toolchains."
+        case .selectIndex(let idx):
+            guard model.toolchains.indices.contains(idx) else {
+                model.message = "Invalid selection."
+                return
+            }
+            let selected = model.toolchains[idx]
+            model.screen = .detail(selected)
+            model.message = "Selected \(selected.identifier). Press 's' to switch, 'b' to go back."
+        case .confirmSwitchFromDetail:
+            guard case .detail(let selected) = model.screen else { return }
+            model.screen = .progress("Switching to \(selected.identifier)...")
+            let ctx = self.ctx
+            let factory = adapterFactory
+            Task.detached {
+                let adapter = factory(ctx)
+                let session = await adapter.activateToolchain(id: selected.identifier)
+                SwifTea.dispatch(Action.operationSession(session))
+            }
         case .runSwitch:
             break
         case .operationResult(let msg):
@@ -166,7 +187,7 @@ struct SwiftlyTUIApplication: TUIScene {
 
     func mapKeyToAction(_ key: KeyEvent) -> Action? {
         switch model.screen {
-        case .menu, .result, .list, .progress:
+        case .menu, .result, .progress:
             switch key {
             case .char("1"):
                 return .start(.list)
@@ -183,6 +204,19 @@ struct SwiftlyTUIApplication: TUIScene {
             default:
                 return nil
             }
+        case .list:
+            switch key {
+            case .char(let ch) where ("0"..."9").contains(ch):
+                guard let idx = Int(String(ch)) else { return nil }
+                if idx == 0 { return .exit }
+                return .selectIndex(idx - 1)
+            case .char("1"):
+                return .start(.list) // refresh
+            case .char("q"), .char("Q"):
+                return .exit
+            default:
+                return nil
+            }
         case .input:
             switch key {
             case .enter:
@@ -193,6 +227,15 @@ struct SwiftlyTUIApplication: TUIScene {
                 return .cancelInput
             case .char(let ch):
                 return .inputChar(ch)
+            default:
+                return nil
+            }
+        case .detail:
+            switch key {
+            case .char("s"), .char("S"):
+                return .confirmSwitchFromDetail
+            case .char("b"), .char("B"):
+                return .showMenu
             default:
                 return nil
             }
@@ -219,32 +262,111 @@ private struct RootTUIView: TUIView {
     var body: Never { fatalError("RootTUIView has no body") }
 
     func render() -> String {
-        var lines: [String] = []
-        lines.append("swiftly TUI")
-        lines.append("----------------------")
-        switch model.screen {
-        case .menu, .result, .progress:
-            lines.append("1) List toolchains")
-            lines.append("2) Switch toolchain")
-            lines.append("3) Install toolchain")
-            lines.append("4) Uninstall toolchain")
-            lines.append("5) Update toolchain")
-            lines.append("0) Exit")
-            lines.append("")
-            lines.append(model.message)
-        case .list:
-            lines.append("Installed toolchains:")
-            lines.append(contentsOf: model.toolchains.map {
-                let activeMark = $0.isActive ? "*" : " "
-                return "\(activeMark) \($0.identifier) [\($0.channel.rawValue)]"
-            })
-            lines.append("")
-            lines.append("Press 0 to exit or 1 to refresh.")
-        case .input(let type):
-            lines.append("\(type.rawValue) - enter toolchain identifier:")
-            lines.append("> \(model.input)")
-            lines.append("Enter=submit, Esc=cancel")
-        }
-        return lines.joined(separator: "\n")
+        let header = Text("swiftly TUI").bold()
+        let divider = Text("----------------------")
+
+        let content: any TUIView = {
+            switch model.screen {
+            case .menu:
+                return VStack(spacing: 1, alignment: .leading) {
+                    header
+                    divider
+                    Text("1) List toolchains")
+                    Text("2) Switch toolchain")
+                    Text("3) Install toolchain")
+                    Text("4) Uninstall toolchain")
+                    Text("5) Update toolchain")
+                    Text("0) Exit")
+                    Text("")
+                    Text(model.message)
+                }
+            case .progress(let message):
+                return VStack(spacing: 1, alignment: .leading) {
+                    header
+                    divider
+                    Text(message)
+                }
+            case .result(let message):
+                return VStack(spacing: 1, alignment: .leading) {
+                    header
+                    divider
+                    Text(message)
+                    Text("")
+                    Text("Press 0 to exit or 1 to refresh list.")
+                }
+            case .list:
+                let indexed = Array(model.toolchains.enumerated())
+                return VStack(spacing: 1, alignment: .leading) {
+                    header
+                    divider
+                    if indexed.isEmpty {
+                        Text("No toolchains found. Choose Install to add one.")
+                    } else {
+                        SwifTeaUI.List(indexed, id: \.element.identifier, rowSpacing: 0, separator: ListRowSeparatorStyle.line()) { pair in
+                            let index = pair.offset + 1
+                            let item = pair.element
+                            Text("\(index).").foregroundColor(.brightBlack)
+                            Text(item.isActive ? "*" : " ").foregroundColor(.green)
+                            Text(item.identifier).bold()
+                            Text("[\(item.channel.rawValue)]").foregroundColor(.brightBlack)
+                        }
+                    }
+                    Text("")
+                    Text("Enter number to view details, 1 to refresh, 0 to exit.")
+                    Text(model.message)
+                }
+            case .detail(let toolchain):
+                return VStack(spacing: 1, alignment: .leading) {
+                    header
+                    divider
+                    Text("Toolchain: \(toolchain.identifier)").bold()
+                    Text("Channel: \(toolchain.channel.rawValue)")
+                    Text("Status: \(toolchain.isActive ? "active" : "installed")")
+                    if let location = toolchain.location { Text("Location: \(location)") }
+                    if let meta = toolchain.metadata?.sizeDescription { Text("Size: \(meta)") }
+                    Text("")
+                    Text("Press 's' to switch, 'b' to go back.")
+                    if let last = model.lastSession {
+                        Text("Last result: \(last.stateDescription)")
+                    }
+                }
+            case .input(let type):
+                return VStack(spacing: 1, alignment: .leading) {
+                    header
+                    divider
+                    Text("\(type.rawValue) - enter toolchain identifier:")
+                    Text("> \(model.input)")
+                    Text("Enter=submit, Esc=cancel")
+                    Text(model.message)
+                }
+            }
+        }()
+
+        return content.render()
     }
+}
+
+private extension OperationSessionViewModel.State {
+    var humanDescription: String {
+        switch self {
+        case .pending:
+            return "pending"
+        case .running(let progress, let message):
+            let msg = message.map { " - \($0)" } ?? ""
+            return "running \(progress)%\(msg)"
+        case .succeeded(let message):
+            return "success: \(message)"
+        case .failed(let message, let logPath):
+            let log = logPath.map { " (log: \($0))" } ?? ""
+            return "failed: \(message)\(log)"
+        case .cancelled(let message, let logPath):
+            let msg = message ?? "cancelled"
+            let log = logPath.map { " (log: \($0))" } ?? ""
+            return "\(msg)\(log)"
+        }
+    }
+}
+
+private extension OperationSessionViewModel {
+    var stateDescription: String { state.humanDescription }
 }

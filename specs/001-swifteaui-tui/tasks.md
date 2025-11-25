@@ -25,7 +25,7 @@
 - [X] T005 Create shared TUI state models (ToolchainViewModel, OperationSessionViewModel) in Sources/Swiftly/TUI/Models/
 - [ ] T006 [P] Implement CoreActionsAdapter against SwiftlyCore list/switch/install/update/remove in Sources/Swiftly/TUI/Adapters/CoreActionsAdapter.swift with error surfaces/log paths
 - [ ] T007 [P] Add SwifTeaUI navigation/store scaffolding (root scene + reducer wiring) in Sources/Swiftly/TUI/TUIApplication.swift
-- [ ] T008 Establish deterministic fixtures/mocks for toolchains and failures in Tests/TUITests/Fixtures/
+- [X] T008 Establish deterministic fixtures/mocks for toolchains and failures in Tests/TUITests/Fixtures/
 - [ ] T009 Add logging/output adapter to channel stdout/stderr per constitution in Sources/Swiftly/TUI/Adapters/OutputAdapter.swift
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
@@ -48,12 +48,12 @@
 
 ### Implementation for User Story 1
 
-- [ ] T015 [P] [US1] Build SwifTeaUI list scene (menu + toolchain list) in Sources/Swiftly/TUI/Views/ToolchainListView.swift
-- [ ] T016 [P] [US1] Build detail scene with active indicator and actions in Sources/Swiftly/TUI/Views/ToolchainDetailView.swift
-- [ ] T017 [US1] Implement switch action with confirmation and success summary in Sources/Swiftly/TUI/Controllers/CoreActionsController.swift
-- [ ] T018 [US1] Wire keyboard navigation (numbers/arrows/enter/q) in Sources/Swiftly/TUI/TUIApplication.swift
+- [X] T015 [P] [US1] Build SwifTeaUI list scene (menu + toolchain list) in Sources/Swiftly/TUI/Views/ToolchainListView.swift
+- [X] T016 [P] [US1] Build detail scene with active indicator and actions in Sources/Swiftly/TUI/Views/ToolchainDetailView.swift
+- [X] T017 [US1] Implement switch action with confirmation and success summary in Sources/Swiftly/TUI/Controllers/CoreActionsController.swift
+- [X] T018 [US1] Wire keyboard navigation (numbers/arrows/enter/q) in Sources/Swiftly/TUI/TUIApplication.swift
 - [ ] T019 [US1] Update quickstart with US1 verification steps in specs/001-swifteaui-tui/quickstart.md
-- [ ] T020 [US1] Add empty-state handling/guidance in Sources/Swiftly/TUI/Views/ToolchainListView.swift
+- [X] T020 [US1] Add empty-state handling/guidance in Sources/Swiftly/TUI/Views/ToolchainListView.swift
 
 **Checkpoint**: User Story 1 independently testable (list, detail, switch).
 
