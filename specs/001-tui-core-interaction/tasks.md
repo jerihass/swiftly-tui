@@ -28,9 +28,9 @@ description: "Task list for TUI Interface for Core Functions"
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-- [ ] T001 Add SwifTeaUI dependency (branch `main`) to Package.swift and resolve package graph.
-- [ ] T002 Create TUI module directories and placeholder entry files in Sources/Swiftly/TUI/ (RootMenuView.swift, Components/, Controllers/, Adapters/).
-- [ ] T003 Add TUI test harness scaffolding file in Tests/SwiftlyTests/TUITests/TUITestHarness.swift for rendering and keystroke simulation.
+- [x] T001 Add SwifTeaUI dependency (branch `main`) to Package.swift and resolve package graph.
+- [x] T002 Create TUI module directories and placeholder entry files in Sources/Swiftly/TUI/ (RootMenuView.swift, Components/, Controllers/, Adapters/).
+- [x] T003 Add TUI test harness scaffolding file in Tests/SwiftlyTests/TUITests/TUITestHarness.swift for rendering and keystroke simulation.
 
 ---
 

@@ -1,5 +1,5 @@
 {
-  "originHash" : "cd85ed855cdbb8c16b4f3d5b455eecaae7131bd792547e25a5124ccf486113c2",
+  "originHash" : "8901b7cbdb0feaa304b3d4fe6c1efa6bf71ab3fa03b69bea37e4b89fd412b845",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -242,6 +242,15 @@
       "state" : {
         "revision" : "e8fbc8b05a155f311b862178d92d043afb216fe3",
         "version" : "0.7.3"
+      }
+    },
+    {
+      "identity" : "swifteaui",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/jerihass/SwifTeaUI",
+      "state" : {
+        "branch" : "main",
+        "revision" : "15c62eb689483b0fb9f55bfe8e79dcbb8be51c55"
       }
     },
     {

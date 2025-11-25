@@ -33,6 +33,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-system", from: "1.4.2"),
         // This dependency provides the correct version of the formatter so that you can run `swift run swiftformat Package.swift Plugins/ Sources/ Tests/`
         .package(url: "https://github.com/nicklockwood/SwiftFormat", exact: "0.49.18"),
+        .package(url: "https://github.com/jerihass/SwifTeaUI", branch: "main"),
     ],
     targets: [
         .executableTarget(
@@ -44,6 +45,7 @@ let package = Package(
                 .target(name: "MacOSPlatform", condition: .when(platforms: [.macOS])),
                 .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
                 .product(name: "SystemPackage", package: "swift-system"),
+                .product(name: "SwifTeaUI", package: "SwifTeaUI"),
             ],
             swiftSettings: swiftSettings
         ),
