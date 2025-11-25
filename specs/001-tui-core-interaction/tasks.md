@@ -52,8 +52,8 @@ description: "Task list for TUI Interface for Core Functions"
 
 ### Tests for User Story 1 (MANDATORY - add before implementation) ⚠️
 
-- [ ] T007 [P] [US1] Add integration test for core action flows (switch/install/uninstall/update) in Tests/SwiftlyTests/TUITests/CoreActionsFlowTests.swift.
-- [ ] T008 [P] [US1] Add unit tests for menu navigation and shortcuts in Tests/SwiftlyTests/TUITests/MenuNavigationTests.swift.
+- [x] T007 [P] [US1] Add integration test for core action flows (switch/install/uninstall/update) in Tests/SwiftlyTests/TUITests/CoreActionsFlowTests.swift.
+- [x] T008 [P] [US1] Add unit tests for menu navigation and shortcuts in Tests/SwiftlyTests/TUITests/MenuNavigationTests.swift.
 
 ### Implementation for User Story 1
 
