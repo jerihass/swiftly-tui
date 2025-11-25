@@ -74,14 +74,14 @@ description: "Task list for TUI Interface for Core Functions"
 
 ### Tests for User Story 2 (MANDATORY - add before implementation) ⚠️
 
-- [ ] T013 [P] [US2] Add listing view tests covering active/installed/available states in Tests/SwiftlyTests/TUITests/ListingViewTests.swift.
-- [ ] T014 [P] [US2] Add detail view tests showing location, size, and last operation in Tests/SwiftlyTests/TUITests/DetailViewTests.swift.
+- [x] T013 [P] [US2] Add listing view tests covering active/installed/available states in Tests/SwiftlyTests/TUITests/ListingViewTests.swift.
+- [x] T014 [P] [US2] Add detail view tests showing location, size, and last operation in Tests/SwiftlyTests/TUITests/DetailViewTests.swift.
 
 ### Implementation for User Story 2
 
-- [ ] T015 [US2] Implement toolchain list view with status badges and channels in Sources/Swiftly/TUI/Views/ToolchainListView.swift.
-- [ ] T016 [US2] Implement detail view showing metadata (location, size, last result) in Sources/Swiftly/TUI/Views/ToolchainDetailView.swift.
-- [ ] T017 [US2] Add layout adapter for sorting/filtering and small terminal handling in Sources/Swiftly/TUI/Views/ListLayoutAdapter.swift.
+- [x] T015 [US2] Implement toolchain list view with status badges and channels in Sources/Swiftly/TUI/Views/ToolchainListView.swift.
+- [x] T016 [US2] Implement detail view showing metadata (location, size, last result) in Sources/Swiftly/TUI/Views/ToolchainDetailView.swift.
+- [x] T017 [US2] Add layout adapter for sorting/filtering and small terminal handling in Sources/Swiftly/TUI/Views/ListLayoutAdapter.swift.
 
 **Checkpoint**: User Story 2 independently testable (inspect states without actions).
 
@@ -95,14 +95,14 @@ description: "Task list for TUI Interface for Core Functions"
 
 ### Tests for User Story 3 (MANDATORY - add before implementation) ⚠️
 
-- [ ] T018 [P] [US3] Add error-handling tests (offline, invalid toolchain id, permission errors) in Tests/SwiftlyTests/TUITests/ErrorRecoveryTests.swift.
-- [ ] T019 [P] [US3] Add cancellation/resume tests for in-progress operations in Tests/SwiftlyTests/TUITests/RecoveryFlowTests.swift.
+- [x] T018 [P] [US3] Add error-handling tests (offline, invalid toolchain id, permission errors) in Tests/SwiftlyTests/TUITests/ErrorRecoveryTests.swift.
+- [x] T019 [P] [US3] Add cancellation/resume tests for in-progress operations in Tests/SwiftlyTests/TUITests/RecoveryFlowTests.swift.
 
 ### Implementation for User Story 3
 
-- [ ] T020 [US3] Implement error view with retry/cancel flows and messaging in Sources/Swiftly/TUI/Views/ErrorView.swift.
-- [ ] T021 [US3] Implement validation adapter suggesting valid toolchains on bad input in Sources/Swiftly/TUI/Adapters/ValidationAdapter.swift.
-- [ ] T022 [US3] Implement recovery controller to handle cancel/resume of operations in Sources/Swiftly/TUI/Controllers/OperationRecoveryController.swift.
+- [x] T020 [US3] Implement error view with retry/cancel flows and messaging in Sources/Swiftly/TUI/Views/ErrorView.swift.
+- [x] T021 [US3] Implement validation adapter suggesting valid toolchains on bad input in Sources/Swiftly/TUI/Adapters/ValidationAdapter.swift.
+- [x] T022 [US3] Implement recovery controller to handle cancel/resume of operations in Sources/Swiftly/TUI/Controllers/OperationRecoveryController.swift.
 
 **Checkpoint**: User Story 3 independently testable (recoverable failures).
 
