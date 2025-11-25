@@ -1,22 +1,33 @@
 import Foundation
 import SwiftlyCore
 
-/// Bridges SwiftlyCore operations for TUI flows. Placeholder implementations to be replaced with real wiring.
+/// Bridges SwiftlyCore operations for TUI flows.
 struct CoreActionsAdapter {
     let ctx: SwiftlyCoreContext
+    var listOverride: (() async -> [ToolchainViewModel])?
+    var switchOverride: ((String) async -> OperationSessionViewModel)?
 
-    func listToolchains() async -> [ToolchainSummary] {
+    func listToolchains() async -> [ToolchainViewModel] {
+        if let listOverride {
+            return await listOverride()
+        }
         do {
             let config = try await Config.load(ctx)
             let inUse = config.inUse
             let installed = config.listInstalledToolchains(selector: nil)
             return installed.map { version in
-                ToolchainSummary(
-                    id: version.name,
-                    name: version.name,
+                ToolchainViewModel(
+                    identifier: version.name,
                     version: version.name,
-                    channel: version.isSnapshot() ? "snapshot" : "release",
-                    status: inUse == version ? "active" : "installed"
+                    channel: version.isSnapshot() ? .snapshot : .stable,
+                    location: nil,
+                    isActive: inUse == version,
+                    isInstalled: true,
+                    metadata: .init(
+                        installedAt: nil,
+                        checksumVerified: nil,
+                        sizeDescription: nil
+                    )
                 )
             }
         } catch {
@@ -24,29 +35,62 @@ struct CoreActionsAdapter {
         }
     }
 
-    func activateToolchain(id: String) async -> OperationOutcome {
+    func activateToolchain(id: String) async -> OperationSessionViewModel {
+        if let switchOverride {
+            return await switchOverride(id)
+        }
         do {
             var config = try await Config.load(ctx)
             let selector = try ToolchainSelector(parsing: id)
             guard let toolchain = config.listInstalledToolchains(selector: selector).max() else {
-                return OperationOutcome(action: "switch", targetToolchainId: id, status: .failed, message: "No match")
+                return OperationSessionViewModel(
+                    type: .switchToolchain,
+                    targetIdentifier: id,
+                    state: .failed(message: "No installed toolchains match \"\(id)\"", logPath: nil),
+                    logPath: nil
+                )
             }
             _ = try await Use.execute(ctx, toolchain, globalDefault: false, verbose: false, assumeYes: true, &config)
-            return OperationOutcome(action: "switch", targetToolchainId: toolchain.name, status: .success, message: "Switched")
+            return OperationSessionViewModel(
+                type: .switchToolchain,
+                targetIdentifier: toolchain.name,
+                state: .succeeded(message: "Switched to \(toolchain.name)"),
+                logPath: nil
+            )
         } catch {
-            return OperationOutcome(action: "switch", targetToolchainId: id, status: .failed, message: "\(error)")
+            return OperationSessionViewModel(
+                type: .switchToolchain,
+                targetIdentifier: id,
+                state: .failed(message: "Switch failed: \(error)", logPath: nil),
+                logPath: nil
+            )
         }
     }
 
-    func installToolchain(id: String) async -> OperationOutcome {
-        return OperationOutcome(action: "install", targetToolchainId: id, status: .failed, message: "Not implemented")
+    func installToolchain(id: String) async -> OperationSessionViewModel {
+        OperationSessionViewModel(
+            type: .install,
+            targetIdentifier: id,
+            state: .failed(message: "Not implemented", logPath: nil),
+            logPath: nil
+        )
     }
 
-    func uninstallToolchain(id: String) async -> OperationOutcome {
-        return OperationOutcome(action: "uninstall", targetToolchainId: id, status: .failed, message: "Not implemented")
+    func uninstallToolchain(id: String) async -> OperationSessionViewModel {
+        OperationSessionViewModel(
+            type: .remove,
+            targetIdentifier: id,
+            state: .failed(message: "Not implemented", logPath: nil),
+            logPath: nil
+        )
     }
 
-    func updateToolchain(id: String) async -> OperationOutcome {
-        return OperationOutcome(action: "update", targetToolchainId: id, status: .failed, message: "Not implemented")
+    func updateToolchain(id: String) async -> OperationSessionViewModel {
+        OperationSessionViewModel(
+            type: .update,
+            targetIdentifier: id,
+            state: .failed(message: "Not implemented", logPath: nil),
+            logPath: nil
+        )
     }
 }

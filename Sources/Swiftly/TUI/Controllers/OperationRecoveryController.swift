@@ -1,10 +1,20 @@
 /// Handles cancel/resume flows for operations. Placeholder implementation.
 final class OperationRecoveryController {
-    func cancelCurrentOperation() -> OperationOutcome {
-        OperationOutcome(action: "cancel", targetToolchainId: "", status: .cancelled, message: "Cancelled")
+    func cancelCurrentOperation(target: String?) -> OperationSessionViewModel {
+        OperationSessionViewModel(
+            type: .remove,
+            targetIdentifier: target,
+            state: .cancelled(message: "Cancelled", logPath: nil),
+            logPath: nil
+        )
     }
 
-    func retryLastOperation(_ outcome: OperationOutcome) -> OperationOutcome {
-        OperationOutcome(action: outcome.action, targetToolchainId: outcome.targetToolchainId, status: .failed, message: "Retry not implemented")
+    func retryLastOperation(_ session: OperationSessionViewModel) -> OperationSessionViewModel {
+        OperationSessionViewModel(
+            type: session.type,
+            targetIdentifier: session.targetIdentifier,
+            state: .failed(message: "Retry not implemented", logPath: session.logPath),
+            logPath: session.logPath
+        )
     }
 }

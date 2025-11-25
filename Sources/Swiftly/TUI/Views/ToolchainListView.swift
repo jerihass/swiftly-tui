@@ -3,7 +3,7 @@ import SwifTeaUI
 struct ToolchainListView: TUIView {
     typealias Body = Never
 
-    let toolchains: [ToolchainSummary]
+    let toolchains: [ToolchainViewModel]
 
     var body: Never { fatalError("ToolchainListView has no body") }
 
@@ -12,7 +12,8 @@ struct ToolchainListView: TUIView {
             return "No toolchains found."
         }
         let lines = toolchains.map { summary in
-            "\(summary.name) \(summary.version) [\(summary.channel)] - \(summary.status)"
+            let activeMark = summary.isActive ? "*" : " "
+            return "[\(activeMark)] \(summary.identifier) \(summary.version) [\(summary.channel.rawValue)]"
         }
         return lines.joined(separator: "\n")
     }

@@ -182,5 +182,12 @@ let package = Package(
             ],
             swiftSettings: swiftSettings
         ),
+        .testTarget(
+            name: "TUITests",
+            dependencies: [
+                "Swiftly",
+            ],
+            swiftSettings: swiftSettings
+        ),
     ]
 )

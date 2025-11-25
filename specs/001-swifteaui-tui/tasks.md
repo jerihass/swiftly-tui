@@ -11,10 +11,10 @@
 
 **Purpose**: Project initialization and base tooling for SwifTeaUI-driven TUI work
 
-- [ ] T001 Ensure SwifTeaUI dependency is pinned to branch `main` in Package.swift
-- [ ] T002 Configure TUI test target for headless scene tests in Tests/TUITests (XCTest manifest, any needed test helpers)
-- [ ] T003 [P] Add basic SwifTeaUI preview/headless harness utilities in Tests/TUITests/Support/
-- [ ] T004 [P] Verify TUI command entry wiring remains thin and calls TUIApplication in Sources/Swiftly/CLI/Commands/TUICommand.swift
+- [X] T001 Ensure SwifTeaUI dependency is pinned to branch `main` in Package.swift
+- [X] T002 Configure TUI test target for headless scene tests in Tests/TUITests (XCTest manifest, any needed test helpers)
+- [X] T003 [P] Add basic SwifTeaUI preview/headless harness utilities in Tests/TUITests/Support/
+- [X] T004 [P] Verify TUI command entry wiring remains thin and calls TUIApplication in Sources/Swiftly/CLI/Commands/TUICommand.swift
 
 ---
 
@@ -22,7 +22,7 @@
 
 **Purpose**: Core adapters/state shared across all user stories
 
-- [ ] T005 Create shared TUI state models (ToolchainViewModel, OperationSessionViewModel) in Sources/Swiftly/TUI/Models/
+- [X] T005 Create shared TUI state models (ToolchainViewModel, OperationSessionViewModel) in Sources/Swiftly/TUI/Models/
 - [ ] T006 [P] Implement CoreActionsAdapter against SwiftlyCore list/switch/install/update/remove in Sources/Swiftly/TUI/Adapters/CoreActionsAdapter.swift with error surfaces/log paths
 - [ ] T007 [P] Add SwifTeaUI navigation/store scaffolding (root scene + reducer wiring) in Sources/Swiftly/TUI/TUIApplication.swift
 - [ ] T008 Establish deterministic fixtures/mocks for toolchains and failures in Tests/TUITests/Fixtures/
@@ -40,11 +40,11 @@
 
 ### Tests for User Story 1 (MANDATORY - add before implementation) ⚠️
 
-- [ ] T010 [P] [US1] Scene unit tests for list rendering and selection in Tests/TUITests/ListingViewTests.swift
-- [ ] T011 [P] [US1] Integration test for list → detail → switch flow in Tests/TUITests/CoreActionsFlowTests.swift
-- [ ] T012 [P] [US1] Keyboard navigation tests (numbers/arrows/enter/q) in Tests/TUITests/MenuNavigationTests.swift
-- [ ] T013 [P] [US1] Empty-state rendering and guidance test in Tests/TUITests/ListingViewTests.swift
-- [ ] T014 [P] [US1] Headless navigation timing test (<60s path to switch) in Tests/TUITests/PerformanceTests.swift
+- [X] T010 [P] [US1] Scene unit tests for list rendering and selection in Tests/TUITests/ListingViewTests.swift
+- [X] T011 [P] [US1] Integration test for list → detail → switch flow in Tests/TUITests/CoreActionsFlowTests.swift
+- [X] T012 [P] [US1] Keyboard navigation tests (numbers/arrows/enter/q) in Tests/TUITests/MenuNavigationTests.swift
+- [X] T013 [P] [US1] Empty-state rendering and guidance test in Tests/TUITests/ListingViewTests.swift
+- [X] T014 [P] [US1] Headless navigation timing test (<60s path to switch) in Tests/TUITests/PerformanceTests.swift
 
 ### Implementation for User Story 1
 
