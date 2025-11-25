@@ -1,0 +1,114 @@
+# TUI Actions Contract (conceptual)
+version: 1.0.0
+feature: SwifTeaUI-Driven TUI Flows
+description: Declarative contract for TUI actions and expected inputs/outputs for testing and CI.
+
+actions:
+  listToolchains:
+    triggers: ["TUI menu: List toolchains"]
+    request:
+      params: {}
+    response:
+      fields:
+        - name: toolchains
+          type: list
+          items:
+            identifier: string
+            version: string
+            channel: enum[stable,snapshot]
+            active: bool
+            location: string
+    notes: Must render with active indicator and keyboard navigation.
+
+  viewToolchainDetail:
+    triggers: ["Select toolchain from list"]
+    request:
+      params:
+        identifier: string
+    response:
+      fields:
+        - name: identifier
+          type: string
+        - name: version
+          type: string
+        - name: channel
+          type: enum[stable,snapshot]
+        - name: active
+          type: bool
+        - name: location
+          type: string
+    notes: Detail view shows fields and available actions.
+
+  switchToolchain:
+    triggers: ["Confirm Switch action in detail view"]
+    request:
+      params:
+        identifier: string
+    response:
+      fields:
+        - name: activeIdentifier
+          type: string
+        - name: message
+          type: string
+    notes: Requires confirmation; output states resulting active toolchain.
+
+  installToolchain:
+    triggers: ["Select Install from menu"]
+    request:
+      params:
+        target: string # e.g., "latest-stable" default or explicit identifier
+    response:
+      fields:
+        - name: status
+          type: enum[success,failure,cancelled]
+        - name: installedIdentifier
+          type: string
+        - name: logPath
+          type: string
+    progress:
+      intervalSeconds: 5
+      signals: ["starting", "downloading", "verifying", "installing", "finalizing"]
+    notes: Show progress updates; failure should surface error and allow retry/cancel.
+
+  updateToolchain:
+    triggers: ["Select Update from detail or menu"]
+    request:
+      params:
+        identifier: string
+    response:
+      fields:
+        - name: status
+          type: enum[success,failure,cancelled]
+        - name: updatedIdentifier
+          type: string
+        - name: logPath
+          type: string
+    progress:
+      intervalSeconds: 5
+    notes: Show what will change; allow abort and ensure prior active remains usable on failure.
+
+  removeToolchain:
+    triggers: ["Select Remove from detail or menu"]
+    request:
+      params:
+        identifier: string
+    response:
+      fields:
+        - name: status
+          type: enum[success,failure,cancelled]
+        - name: removedIdentifier
+          type: string
+        - name: logPath
+          type: string
+    notes: Confirmation required; if active, prompt to switch or confirm force.
+
+  handleError:
+    triggers: ["Any action failure"]
+    request:
+      params:
+        errorCode: string
+        message: string
+        logPath: string
+    response:
+      choices: ["retry", "cancel"]
+    notes: Must return user to stable state; no crash.
