@@ -1,0 +1,159 @@
+openapi: 3.1.0
+info:
+  title: Swiftly TUI Actions
+  version: "1.0.0-draft"
+  description: >
+    Contract for TUI-driven interactions with core swiftly actions. Although surfaced
+    via TUI, these operations mirror the underlying CLI behaviors for listing,
+    switching, installing, uninstalling, and updating toolchains.
+servers:
+  - url: cli://swiftly
+paths:
+  /toolchains:
+    get:
+      summary: List toolchains with status for TUI display
+      responses:
+        "200":
+          description: Toolchains with status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ToolchainSummary"
+  /toolchains/{id}/activate:
+    post:
+      summary: Switch active toolchain
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Switch successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OperationOutcome"
+        "400":
+          description: Invalid toolchain id
+  /toolchains/{id}/install:
+    post:
+      summary: Install a toolchain
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "202":
+          description: Install started with progress tracking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OperationOutcome"
+        "400":
+          description: Invalid or unavailable toolchain id
+  /toolchains/{id}/uninstall:
+    delete:
+      summary: Uninstall a toolchain (destructive; requires confirmation)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "202":
+          description: Uninstall started with progress tracking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OperationOutcome"
+        "400":
+          description: Invalid toolchain id
+  /toolchains/{id}/update:
+    post:
+      summary: Update a toolchain to latest available build
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "202":
+          description: Update started with progress tracking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OperationOutcome"
+        "400":
+          description: Invalid toolchain id
+
+components:
+  schemas:
+    ToolchainSummary:
+      type: object
+      required:
+        - id
+        - name
+        - version
+        - channel
+        - status
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        channel:
+          type: string
+          enum: [release, snapshot]
+        status:
+          type: string
+          enum: [active, installed, available, in-progress]
+        location:
+          type: string
+          description: Filesystem path when installed
+        size:
+          type: string
+          description: Human-readable size if known
+        lastOperationResult:
+          $ref: "#/components/schemas/OperationOutcome"
+    OperationOutcome:
+      type: object
+      required:
+        - action
+        - status
+        - message
+      properties:
+        action:
+          type: string
+          enum: [list, switch, install, uninstall, update]
+        targetToolchainId:
+          type: string
+        status:
+          type: string
+          enum: [success, failed, cancelled, in-progress]
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+        message:
+          type: string
+        retryOptions:
+          type: array
+          items:
+            type: string
+            enum: [retry, cancel]
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
