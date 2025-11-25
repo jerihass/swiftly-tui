@@ -57,10 +57,10 @@ description: "Task list for TUI Interface for Core Functions"
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Implement root menu view and keyboard navigation in Sources/Swiftly/TUI/RootMenuView.swift using SwifTeaUI.
-- [ ] T010 [US1] Implement core actions controller wiring selections to CoreActionsAdapter with confirmations in Sources/Swiftly/TUI/Controllers/CoreActionsController.swift.
-- [ ] T011 [US1] Implement progress and completion summaries for long operations in Sources/Swiftly/TUI/Components/ProgressView.swift.
-- [ ] T012 [US1] Finalize `tui` command to start the TUI loop and exit handling in Sources/Swiftly/Commands/TUICommand.swift.
+- [x] T009 [US1] Implement root menu view and keyboard navigation in Sources/Swiftly/TUI/RootMenuView.swift using SwifTeaUI.
+- [x] T010 [US1] Implement core actions controller wiring selections to CoreActionsAdapter with confirmations in Sources/Swiftly/TUI/Controllers/CoreActionsController.swift.
+- [x] T011 [US1] Implement progress and completion summaries for long operations in Sources/Swiftly/TUI/Components/ProgressView.swift.
+- [x] T012 [US1] Finalize `tui` command to start the TUI loop and exit handling in Sources/Swiftly/Commands/TUICommand.swift.
 
 **Checkpoint**: User Story 1 independently testable (switch/install/uninstall/update via TUI).
 

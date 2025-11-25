@@ -11,8 +11,9 @@ struct TUICommand: SwiftlyCommand {
     var global: GlobalOptions
 
     mutating func run(_ ctx: SwiftlyCoreContext) async throws {
-        // Placeholder launch; will be replaced with SwifTeaUI host in US1.
         _ = global
-        _ = ctx
+        // TODO: integrate SwifTeaUI host and render RootMenuView with CoreActionsController.
+        // Placeholder to indicate command is reachable.
+        ctx.message("TUI coming soon. Run swiftly tui after implementation.")
     }
 }
