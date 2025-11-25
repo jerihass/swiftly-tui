@@ -114,6 +114,11 @@ description: "Task list for TUI Interface for Core Functions"
 - [ ] T024 Update quickstart with TUI flows and troubleshooting in specs/001-tui-core-interaction/quickstart.md.
 - [ ] T025 [P] Add small-terminal layout regression test in Tests/SwiftlyTests/TUITests/LayoutConstraintsTests.swift.
 - [ ] T026 [P] Refine accessibility cues (focus indicators, error messaging clarity) in Sources/Swiftly/TUI/Components/AccessibilityStyles.swift.
+- [ ] T027 [P] Capture any missing SwifTeaUI component needs in specs/001-tui-core-interaction/research.md (SwifTeaUI gaps section) during implementation.
+- [ ] T028 Add timing assertions for action summaries (<2s) and keystroke counts in Tests/SwiftlyTests/TUITests/PerformanceTests.swift.
+- [ ] T029 Add cross-platform test execution steps for macOS and Linux in README.md and CI workflow (.github/workflows/ci.yml) to enforce parity for TUI tests.
+- [ ] T030 [P] Add error-handling tests for disk space exhaustion and corrupted metadata in Tests/SwiftlyTests/TUITests/ErrorRecoveryTests.swift.
+- [ ] T031 [P] Add output channel validation ensuring stdout/stderr separation and structured error messages in Tests/SwiftlyTests/TUITests/OutputChannelTests.swift and adjust messaging in Sources/Swiftly/TUI/Adapters/OutputAdapter.swift.
 
 ---
 
