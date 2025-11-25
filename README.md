@@ -65,6 +65,16 @@ To mirror CI's Linux leg for the TUI suite from macOS, use Docker:
 docker run --rm -v "$PWD":/work -w /work swift:6.0.3 swift test --filter TUITests
 ```
 
+## TUI command (coming soon)
+
+After implementation, launch the TUI via:
+
+```bash
+swift run swiftly tui
+```
+
+Keyboard-only: arrows/Tab/Enter; confirm destructive actions when prompted.
+
 ## Updating swiftly
 
 This command checks to see if there are new versions of swiftly itself and upgrades to them if possible.

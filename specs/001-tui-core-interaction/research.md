@@ -19,3 +19,6 @@
 - **Decision**: Provide confirmations for destructive actions (uninstall, switching when operation in progress) and offer retry/cancel on any failure with clear messages.
 - **Rationale**: Aligns with platform safety and release integrity principles; avoids partial/unrecoverable states.
 - **Alternatives considered**: Implicit actions without confirmation (violates safety); one-shot failure without retry (hurts usability).
+
+## SwifTeaUI gaps (to capture during implementation)
+- None identified yet; add items here if new widgets or adapters are needed.
