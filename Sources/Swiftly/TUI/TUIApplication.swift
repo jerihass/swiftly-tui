@@ -63,10 +63,10 @@ struct SwiftlyTUIApplication: TUIScene {
             case .list:
                 model.screen = .progress("Loading toolchains...")
                 let ctx = self.ctx
-                SwifTea.dispatch(Effect<Action>.run { send in
+                Task.detached {
                     let list = await Self.loadInstalled(ctx: ctx)
-                    send(.listLoaded(list))
-                })
+                    SwifTea.dispatch(Action.listLoaded(list))
+                }
             case .switchActive:
                 model.screen = .input(.switchActive)
                 model.input = ""
@@ -94,19 +94,19 @@ struct SwiftlyTUIApplication: TUIScene {
                 case .switchActive:
                     model.screen = .progress("Switching to \(value)...")
                     let ctx = self.ctx
-                    SwifTea.dispatch(Effect<Action>.run { send in
+                    Task.detached {
                         let result = await Self.performSwitch(ctx: ctx, to: value)
-                        send(.operationResult(result))
-                    })
+                        SwifTea.dispatch(Action.operationResult(result))
+                    }
                 case .install:
                     model.screen = .progress("Install \(value) not yet implemented.")
-                    SwifTea.dispatch(Effect<Action>.fire(.operationResult("Install \(value): not implemented yet.")))
+                    SwifTea.dispatch(Action.operationResult("Install \(value): not implemented yet."))
                 case .uninstall:
                     model.screen = .progress("Uninstall \(value) not yet implemented.")
-                    SwifTea.dispatch(Effect<Action>.fire(.operationResult("Uninstall \(value): not implemented yet.")))
+                    SwifTea.dispatch(Action.operationResult("Uninstall \(value): not implemented yet."))
                 case .update:
                     model.screen = .progress("Update \(value) not yet implemented.")
-                    SwifTea.dispatch(Effect<Action>.fire(.operationResult("Update \(value): not implemented yet.")))
+                    SwifTea.dispatch(Action.operationResult("Update \(value): not implemented yet."))
                 case .list, .exit:
                     break
                 }
@@ -120,10 +120,10 @@ struct SwiftlyTUIApplication: TUIScene {
         case .loadList:
             model.screen = .progress("Loading toolchains...")
             let ctx = self.ctx
-            SwifTea.dispatch(Effect<Action>.run { send in
+            Task.detached {
                 let list = await Self.loadInstalled(ctx: ctx)
-                send(.listLoaded(list))
-            })
+                SwifTea.dispatch(Action.listLoaded(list))
+            }
         case .listLoaded(let list):
             model.toolchains = list
             model.screen = .list

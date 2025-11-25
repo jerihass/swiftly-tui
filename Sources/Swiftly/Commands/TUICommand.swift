@@ -11,6 +11,10 @@ struct TUICommand: SwiftlyCommand {
     @OptionGroup
     var global: GlobalOptions
 
+    mutating func run() async throws {
+        try await self.run(Swiftly.createDefaultContext())
+    }
+
     mutating func run(_ ctx: SwiftlyCoreContext) async throws {
         _ = global
         let app = SwiftlyTUIApplication(ctx: ctx)
