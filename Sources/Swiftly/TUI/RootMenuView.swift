@@ -1,24 +1,23 @@
 import SwifTeaUI
 
-struct RootMenuView: View {
+/// Minimal placeholder menu until full SwifTeaUI flow is wired.
+struct RootMenuView: TUIView {
+    typealias Body = Never
+
     let onSelectAction: (Action) -> Void
 
-    var body: some View {
-        VStack {
-            Text("swiftly TUI")
-                .font(.title)
-            Text("Use arrows/Tab to navigate; Enter to select.")
-                .font(.footnote)
-            List {
-                Button("List toolchains") { onSelectAction(.list) }
-                Button("Switch toolchain") { onSelectAction(.switchActive) }
-                Button("Install toolchain") { onSelectAction(.install) }
-                Button("Uninstall toolchain") { onSelectAction(.uninstall) }
-                Button("Update toolchain") { onSelectAction(.update) }
-                Button("Exit") { onSelectAction(.exit) }
-            }
-        }
-        .padding()
+    var body: Never { fatalError("RootMenuView has no body") }
+
+    func render() -> String {
+        """
+        swiftly TUI (placeholder)
+        1) List toolchains
+        2) Switch toolchain
+        3) Install toolchain
+        4) Uninstall toolchain
+        5) Update toolchain
+        0) Exit
+        """
     }
 
     enum Action {

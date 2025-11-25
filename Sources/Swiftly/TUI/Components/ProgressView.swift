@@ -1,14 +1,17 @@
 import SwifTeaUI
 
-struct ProgressViewComponent: View {
+struct ProgressViewComponent: TUIView {
+    typealias Body = Never
+
     let title: String
     let message: String
 
-    var body: some View {
-        VStack {
-            Text(title).font(.headline)
-            Text(message).font(.footnote)
-        }
-        .padding()
+    var body: Never { fatalError("ProgressViewComponent has no body") }
+
+    func render() -> String {
+        """
+        \(title)
+        \(message)
+        """
     }
 }

@@ -14,6 +14,6 @@ struct TUICommand: SwiftlyCommand {
         _ = global
         // TODO: integrate SwifTeaUI host and render RootMenuView with CoreActionsController.
         // Placeholder to indicate command is reachable.
-        ctx.message("TUI coming soon. Run swiftly tui after implementation.")
+        await ctx.message("TUI coming soon. Run swiftly tui after implementation.")
     }
 }
