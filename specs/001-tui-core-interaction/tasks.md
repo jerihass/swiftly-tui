@@ -36,9 +36,9 @@ description: "Task list for TUI Interface for Core Functions"
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
-- [ ] T004 Stub `tui` command entry and wiring in Sources/Swiftly/Commands/TUICommand.swift to launch TUI host.
-- [ ] T005 Implement service adapter bridging SwiftlyCore operations for list/switch/install/uninstall/update in Sources/Swiftly/TUI/Adapters/CoreActionsAdapter.swift.
-- [ ] T006 Add shared progress/event model for TUI in Sources/Swiftly/TUI/Models/OperationState.swift and mirror in Tests fixtures.
+- [x] T004 Stub `tui` command entry and wiring in Sources/Swiftly/Commands/TUICommand.swift to launch TUI host.
+- [x] T005 Implement service adapter bridging SwiftlyCore operations for list/switch/install/uninstall/update in Sources/Swiftly/TUI/Adapters/CoreActionsAdapter.swift.
+- [x] T006 Add shared progress/event model for TUI in Sources/Swiftly/TUI/Models/OperationState.swift and mirror in Tests fixtures.
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel.
 

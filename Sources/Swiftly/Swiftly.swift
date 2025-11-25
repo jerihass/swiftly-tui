@@ -49,6 +49,7 @@ public struct Swiftly: SwiftlyCommand {
             SelfUninstall.self,
             Link.self,
             Unlink.self,
+            TUICommand.self,
         ]
     )
 
