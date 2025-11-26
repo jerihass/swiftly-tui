@@ -8,7 +8,7 @@ description: "Task list template for feature implementation"
 **Input**: Design documents from `/specs/[###-feature-name]/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Tests**: Tests are REQUIRED. Add failing tests before implementation for every user story (unit + CLI/integration as appropriate).
+**Tests**: Tests are REQUIRED. Add failing tests before implementation for every user story (unit + CLI/integration as appropriate) and run across macOS and Linux.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 

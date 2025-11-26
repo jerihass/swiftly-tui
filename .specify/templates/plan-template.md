@@ -33,6 +33,7 @@
 
 - Tests-first: Each planned task includes failing tests before implementation (unit + CLI/integration) with macOS and Linux coverage.
 - Composable modules: CLI commands stay thin; domain services and IO adapters are separated and injected.
+- Clean architecture boundaries: Domain rules remain pure/deterministic; IO (filesystem, network, process) is wrapped behind protocols/adapters and injected.
 - Platform parity & safety: Plans account for safe filesystem/process actions, checksum/signature validation, and recovery paths.
 - CLI contract stability: Any flag/command changes note compatibility expectations and migration guidance.
 - Release readiness: Expected version bump level and rollback/migration steps are identified when behavior changes.

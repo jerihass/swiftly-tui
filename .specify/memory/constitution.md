@@ -1,10 +1,10 @@
 <!--
 Sync Impact Report
-Version: 0.0.0 → 1.0.0
-Modified Principles: N/A → TDD-First Delivery; N/A → Composable CLI Modules; N/A → Clean Architecture Boundaries; N/A → Platform Parity & Safety; N/A → Release Integrity & Compatibility
-Added Sections: Technology & Quality Constraints; Workflow & Quality Gates
+Version: 1.0.0 → 1.0.0 (no governance change)
+Modified Principles: None
+Added Sections: None
 Removed Sections: None
-Templates: ✅ .specify/templates/plan-template.md | ✅ .specify/templates/tasks-template.md | ⚠️ None pending
+Templates: ✅ .specify/templates/plan-template.md | ✅ .specify/templates/tasks-template.md
 Follow-up TODOs: None
 -->
 # swiftly Constitution
