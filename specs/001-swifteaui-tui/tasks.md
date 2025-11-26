@@ -93,15 +93,15 @@
 
 ### Tests for User Story 3 (MANDATORY - add before implementation) ⚠️
 
-- [ ] T031 [P] [US3] Error view rendering and choices tests in Tests/TUITests/ErrorViewTests.swift
-- [ ] T032 [P] [US3] Recovery flow tests for interrupted install/update/remove in Tests/TUITests/RecoveryFlowTests.swift
-- [ ] T033 [P] [US3] Log path surfacing and retry/cancel branching tests in Tests/TUITests/OutputChannelTests.swift
+- [X] T031 [P] [US3] Error view rendering and choices tests in Tests/TUITests/ErrorViewTests.swift
+- [X] T032 [P] [US3] Recovery flow tests for interrupted install/update/remove in Tests/TUITests/RecoveryFlowTests.swift
+- [X] T033 [P] [US3] Log path surfacing and retry/cancel branching tests in Tests/TUITests/OutputChannelTests.swift
 
 ### Implementation for User Story 3
 
-- [ ] T034 [P] [US3] Build SwifTeaUI error view with retry/cancel and log path display in Sources/Swiftly/TUI/Views/ErrorView.swift
+- [X] T034 [P] [US3] Build SwifTeaUI error view with retry/cancel and log path display in Sources/Swiftly/TUI/Views/ErrorView.swift
 - [ ] T035 [US3] Add recovery controller to resume/abort operations and restore menu state in Sources/Swiftly/TUI/Controllers/OperationRecoveryController.swift
-- [ ] T036 [US3] Wire error routing from all actions to error view + recovery in Sources/Swiftly/TUI/TUIApplication.swift
+- [X] T036 [US3] Wire error routing from all actions to error view + recovery in Sources/Swiftly/TUI/TUIApplication.swift
 - [ ] T037 [US3] Ensure interrupted operations detect and handle pending state on next launch in Sources/Swiftly/TUI/Adapters/CoreActionsAdapter.swift
 
 **Checkpoint**: User Story 3 independently testable (errors surfaced, retry/cancel stable, no crashes).

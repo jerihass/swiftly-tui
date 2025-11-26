@@ -13,6 +13,7 @@ struct SwiftlyTUIApplication: TUIScene {
             case input(ActionType)
             case progress(String)
             case result(String)
+            case error(OperationSessionViewModel)
         }
 
         var screen: Screen = .menu
@@ -50,6 +51,8 @@ struct SwiftlyTUIApplication: TUIScene {
         case runSwitch(String)
         case operationResult(String)
         case operationSession(OperationSessionViewModel)
+        case retryLast
+        case cancelRecovery
         case exit
     }
 
@@ -226,14 +229,39 @@ struct SwiftlyTUIApplication: TUIScene {
                 model.screen = .result(message)
                 model.message = message
             case .failed(let message, _):
-                model.screen = .result(message)
+                model.screen = .error(session)
                 model.message = message
             case .cancelled(let message, _):
-                model.screen = .result(message ?? "Cancelled")
+                model.screen = .error(session)
                 model.message = message ?? "Cancelled"
             case .pending, .running:
                 model.screen = .progress("Running...")
             }
+        case .retryLast:
+            guard let session = model.lastSession else { return }
+            let target = session.targetIdentifier ?? ""
+            model.screen = .progress("Retrying \(target)...")
+            let controller = self.controller
+            Task.detached {
+                let next: OperationSessionViewModel
+                switch session.type {
+                case .install:
+                    next = await controller.install(id: target)
+                case .update:
+                    next = await controller.update(id: target)
+                case .remove:
+                    next = await controller.remove(id: target)
+                case .switchToolchain:
+                    next = await controller.switchToolchain(id: target)
+                case .list, .detail:
+                    next = session
+                }
+                SwifTea.dispatch(Action.operationSession(next))
+            }
+        case .cancelRecovery:
+            model.screen = .menu
+            model.message = "Operation cancelled."
+            model.navigationStack = []
         case .exit:
             break
         }
@@ -298,6 +326,19 @@ struct SwiftlyTUIApplication: TUIScene {
                 return .confirmSwitchFromDetail
             case .char("b"), .char("B"):
                 return .back
+            default:
+                return nil
+            }
+        case .error:
+            switch key {
+            case .char("r"), .char("R"):
+                return .retryLast
+            case .char("c"), .char("C"):
+                return .cancelRecovery
+            case .char("b"), .char("B"):
+                return .back
+            case .char("q"), .char("Q"), .char("0"):
+                return .exit
             default:
                 return nil
             }
@@ -406,6 +447,16 @@ private struct RootTUIView: TUIView {
                         Text("Last result: \(last.stateDescription)")
                     }
                 }
+            case .error(let session):
+                return VStack(spacing: 1, alignment: .leading) {
+                    header
+                    divider
+                    ErrorView(
+                        message: session.state.humanErrorMessage,
+                        suggestion: "Retry (r) or Cancel (c)",
+                        logPath: session.logPath
+                    )
+                }
             case .input(let type):
                 let view: any TUIView = {
                     switch type {
@@ -449,7 +500,7 @@ private struct RootTUIView: TUIView {
     }
 }
 
-private extension OperationSessionViewModel.State {
+internal extension OperationSessionViewModel.State {
     var humanDescription: String {
         switch self {
         case .pending:
@@ -468,10 +519,25 @@ private extension OperationSessionViewModel.State {
             return "\(msg)\(log)"
         }
     }
+
+    var humanErrorMessage: String {
+        switch self {
+        case .failed(let message, let logPath):
+            let log = logPath.map { " (log: \($0))" } ?? ""
+            return "Failed: \(message)\(log)"
+        case .cancelled(let message, let logPath):
+            let msg = message ?? "Cancelled"
+            let log = logPath.map { " (log: \($0))" } ?? ""
+            return "\(msg)\(log)"
+        case .pending, .running, .succeeded:
+            return humanDescription
+        }
+    }
 }
 
 private extension OperationSessionViewModel {
     var stateDescription: String { state.humanDescription }
+    var stateErrorDescription: String { state.humanErrorMessage }
 }
 
 private func breadcrumb(for screen: SwiftlyTUIApplication.Model.Screen) -> String {
@@ -488,6 +554,8 @@ private func breadcrumb(for screen: SwiftlyTUIApplication.Model.Screen) -> Strin
         return "Home > Working"
     case .result:
         return "Home > Result"
+    case .error:
+        return "Home > Error"
     }
 }
 
@@ -505,6 +573,8 @@ private func hints(for screen: SwiftlyTUIApplication.Model.Screen) -> String {
         return "Working… q exit"
     case .result:
         return "1 refresh list · b back · 0/q exit"
+    case .error:
+        return "r retry · c cancel · b back · 0/q exit"
     }
 }
 
