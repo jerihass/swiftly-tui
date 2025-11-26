@@ -102,7 +102,7 @@
 - [X] T034 [P] [US3] Build SwifTeaUI error view with retry/cancel and log path display in Sources/Swiftly/TUI/Views/ErrorView.swift
 - [X] T035 [US3] Add recovery controller to resume/abort operations and restore menu state in Sources/Swiftly/TUI/Controllers/OperationRecoveryController.swift
 - [X] T036 [US3] Wire error routing from all actions to error view + recovery in Sources/Swiftly/TUI/TUIApplication.swift
-- [ ] T037 [US3] Ensure interrupted operations detect and handle pending state on next launch in Sources/Swiftly/TUI/Adapters/CoreActionsAdapter.swift
+- [X] T037 [US3] Ensure interrupted operations detect and handle pending state on next launch in Sources/Swiftly/TUI/Adapters/CoreActionsAdapter.swift
 
 **Checkpoint**: User Story 3 independently testable (errors surfaced, retry/cancel stable, no crashes).
 

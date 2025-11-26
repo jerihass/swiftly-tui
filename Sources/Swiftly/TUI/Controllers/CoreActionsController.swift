@@ -29,4 +29,8 @@ struct CoreActionsController {
     func remove(id: String) async -> OperationSessionViewModel {
         await adapterFactory(ctx).uninstallToolchain(id: id)
     }
+
+    func loadPendingSession() async -> OperationSessionViewModel? {
+        await adapterFactory(ctx).loadPendingSession()
+    }
 }

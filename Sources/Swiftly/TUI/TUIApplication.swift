@@ -76,10 +76,16 @@ struct SwiftlyTUIApplication: TUIScene {
     mutating func update(action: Action) {
         switch action {
         case .showMenu:
-            model.screen = .menu
-            model.navigationStack = []
-            model.message = "Use numbers to choose an action."
-            model.input = ""
+        model.screen = .menu
+        model.navigationStack = []
+        model.message = "Use numbers to choose an action."
+        model.input = ""
+        let controller = self.controller
+        Task.detached {
+            if let pending = await controller.loadPendingSession() {
+                SwifTea.dispatch(Action.operationSession(pending))
+            }
+        }
         case .start(let type):
             switch type {
             case .list:

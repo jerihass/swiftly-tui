@@ -10,6 +10,7 @@ struct CoreActionsAdapter {
     var installOverride: ((String) async -> OperationSessionViewModel)?
     var uninstallOverride: ((String) async -> OperationSessionViewModel)?
     var updateOverride: ((String) async -> OperationSessionViewModel)?
+    var pendingOverride: (() async -> OperationSessionViewModel?)?
 
     func listToolchains() async -> [ToolchainViewModel] {
         if let listOverride {
@@ -154,6 +155,16 @@ struct CoreActionsAdapter {
             return ("Updated \(current.identifier) → \(targetVersion.identifier)", progressFile)
         }
     }
+
+    func loadPendingSession() async -> OperationSessionViewModel? {
+        if let pendingOverride {
+            return await pendingOverride()
+        }
+        let pendingPath = Swiftly.currentPlatform.swiftlyHomeDir(ctx) / "logs" / "tui-pending.json"
+        guard let data = try? await fs.cat(atPath: pendingPath) else { return nil }
+        guard let decoded = try? JSONDecoder().decode(PersistedSession.self, from: data) else { return nil }
+        return decoded.toViewModel()
+    }
 }
 
 private extension CoreActionsAdapter {
@@ -198,5 +209,46 @@ private extension CoreActionsAdapter {
         case .update: return "Update"
         case .remove: return "Remove"
         }
+    }
+}
+
+private struct PersistedSession: Codable {
+    let type: String
+    let target: String?
+    let state: String
+    let message: String?
+    let logPath: String?
+
+    func toViewModel() -> OperationSessionViewModel? {
+        let opType: OperationSessionViewModel.OperationType?
+        switch type {
+        case "install": opType = .install
+        case "update": opType = .update
+        case "remove": opType = .remove
+        case "switch": opType = .switchToolchain
+        default: opType = nil
+        }
+        guard let opType else { return nil }
+
+        let opState: OperationSessionViewModel.State
+        switch state {
+        case "running", "pending":
+            opState = .pending
+        case "failed":
+            opState = .failed(message: message ?? "Failed", logPath: logPath)
+        case "cancelled":
+            opState = .cancelled(message: message, logPath: logPath)
+        case "succeeded":
+            opState = .succeeded(message: message ?? "Done")
+        default:
+            opState = .pending
+        }
+
+        return OperationSessionViewModel(
+            type: opType,
+            targetIdentifier: target,
+            state: opState,
+            logPath: logPath
+        )
     }
 }
