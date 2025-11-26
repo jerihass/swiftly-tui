@@ -302,13 +302,33 @@ private struct RootTUIView: TUIView {
                     if indexed.isEmpty {
                         Text("No toolchains found. Choose Install to add one.")
                     } else {
-                        SwifTeaUI.List(indexed, id: \.element.identifier, rowSpacing: 0, separator: ListRowSeparatorStyle.line()) { pair in
-                            let index = pair.offset + 1
-                            let item = pair.element
-                            Text("\(index).").foregroundColor(.brightBlack)
-                            Text(item.isActive ? "*" : " ").foregroundColor(.green)
-                            Text(item.identifier).bold()
-                            Text("[\(item.channel.rawValue)]").foregroundColor(.brightBlack)
+                        Table(
+                            indexed,
+                            id: \.element.identifier,
+                            columnSpacing: 2,
+                            rowSpacing: 0,
+                            divider: .line()
+                        ) {
+                            TableColumn("#", width: .fixed(3), alignment: .trailing) { pair in
+                                let pair: (offset: Int, element: ToolchainViewModel) = pair
+                                Text("\(pair.offset + 1)").foregroundColor(.brightBlack)
+                            }
+                            TableColumn("ID", width: .flex(min: 10)) { pair in
+                                let pair: (offset: Int, element: ToolchainViewModel) = pair
+                                Text(pair.element.identifier).bold()
+                            }
+                            TableColumn("Channel", width: .fitContent) { pair in
+                                let pair: (offset: Int, element: ToolchainViewModel) = pair
+                                Text(pair.element.channel.rawValue).foregroundColor(.brightBlack)
+                            }
+                            TableColumn("Status", width: .fitContent) { pair in
+                                let pair: (offset: Int, element: ToolchainViewModel) = pair
+                                if pair.element.isActive {
+                                    Text("active").foregroundColor(.green).bold()
+                                } else {
+                                    Text("installed")
+                                }
+                            }
                         }
                     }
                     Text("")
