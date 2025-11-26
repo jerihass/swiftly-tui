@@ -79,7 +79,7 @@
 - [X] T027 [US2] Implement remove scene with active-check guard and confirmation in Sources/Swiftly/TUI/Views/RemoveView.swift
 - [X] T028 [US2] Hook install/update/remove actions to CoreActionsAdapter with progress tick updates in Sources/Swiftly/TUI/Controllers/CoreActionsController.swift
 - [X] T029 [P] [US2] Add contract assertions against tui-actions.yaml for install/update/remove in Tests/TUITests/Contract/TUIActionsContractTests.swift
-- [ ] T030 [US2] Add identifier validation and user feedback for invalid inputs in Sources/Swiftly/TUI/Views/InstallView.swift
+- [X] T030 [US2] Add identifier validation and user feedback for invalid inputs in Sources/Swiftly/TUI/Views/InstallView.swift
 
 **Checkpoint**: User Story 2 independently testable (install/update/remove with progress and summaries).
 

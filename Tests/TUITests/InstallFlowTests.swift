@@ -37,4 +37,13 @@ final class InstallFlowTests: XCTestCase {
         XCTAssertEqual(app.model.message, "Input cannot be empty.")
         XCTAssertEqual(app.model.screen, .input(.uninstall))
     }
+
+    func testInstallRejectsInvalidIdentifier() {
+        var app = TUITestHarness.makeApp()
+        _ = app.mapKeyToAction(.char("3")).map { app.update(action: $0) }
+        app.model.input = "???"
+        app.update(action: .submit)
+        XCTAssertTrue(app.model.message.contains("Invalid identifier"))
+        XCTAssertEqual(app.model.screen, .input(.install))
+    }
 }

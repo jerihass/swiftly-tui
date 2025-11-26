@@ -119,6 +119,14 @@ struct SwiftlyTUIApplication: TUIScene {
                     }
                 case .install:
                     let target = value
+                    if !target.isEmpty {
+                        do {
+                            _ = try ToolchainSelector(parsing: target)
+                        } catch {
+                            model.message = "Invalid identifier: \(error)"
+                            return
+                        }
+                    }
                     model.screen = .progress(target.isEmpty ? "Installing latest stable..." : "Installing \(target)...")
                     let controller = self.controller
                     Task.detached {
