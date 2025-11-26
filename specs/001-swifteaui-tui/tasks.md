@@ -52,7 +52,7 @@
 - [X] T016 [P] [US1] Build detail scene with active indicator and actions in Sources/Swiftly/TUI/Views/ToolchainDetailView.swift
 - [X] T017 [US1] Implement switch action with confirmation and success summary in Sources/Swiftly/TUI/Controllers/CoreActionsController.swift
 - [X] T018 [US1] Wire keyboard navigation (numbers/arrows/enter/q) in Sources/Swiftly/TUI/TUIApplication.swift
-- [ ] T019 [US1] Update quickstart with US1 verification steps in specs/001-swifteaui-tui/quickstart.md
+- [X] T019 [US1] Update quickstart with US1 verification steps in specs/001-swifteaui-tui/quickstart.md
 - [X] T020 [US1] Add empty-state handling/guidance in Sources/Swiftly/TUI/Views/ToolchainListView.swift
 
 **Checkpoint**: User Story 1 independently testable (list, detail, switch).
