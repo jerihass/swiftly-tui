@@ -2,6 +2,8 @@ import Foundation
 import SwifTeaUI
 import SwiftlyCore
 
+private typealias ToolchainRow = (offset: Int, element: ToolchainViewModel)
+
 struct SwiftlyTUIApplication: TUIScene {
     struct Model {
         enum Screen: Equatable {
@@ -18,6 +20,7 @@ struct SwiftlyTUIApplication: TUIScene {
         var message: String = "Use numbers to choose an action."
         var input: String = ""
         var lastSession: OperationSessionViewModel?
+        var focusedIndex: Int? = nil
     }
 
     enum ActionType: String {
@@ -40,6 +43,8 @@ struct SwiftlyTUIApplication: TUIScene {
         case listLoaded([ToolchainViewModel])
         case selectIndex(Int)
         case confirmSwitchFromDetail
+        case moveFocus(Int)
+        case openFocused
         case runSwitch(String)
         case operationResult(String)
         case operationSession(OperationSessionViewModel)
@@ -140,6 +145,7 @@ struct SwiftlyTUIApplication: TUIScene {
         case .listLoaded(let list):
             model.toolchains = ListLayoutAdapter.sort(list)
             model.screen = .list
+            model.focusedIndex = list.isEmpty ? nil : 0
             model.message = list.isEmpty ? "No installed toolchains. Choose Install to add one." : "Installed toolchains."
         case .selectIndex(let idx):
             guard model.toolchains.indices.contains(idx) else {
@@ -147,8 +153,18 @@ struct SwiftlyTUIApplication: TUIScene {
                 return
             }
             let selected = model.toolchains[idx]
+            model.focusedIndex = idx
             model.screen = .detail(selected)
             model.message = "Selected \(selected.identifier). Press 's' to switch, 'b' to go back."
+        case .moveFocus(let delta):
+            guard !model.toolchains.isEmpty else { return }
+            let current = model.focusedIndex ?? 0
+            let next = max(0, min(model.toolchains.count - 1, current + delta))
+            model.focusedIndex = next
+            model.message = "Focused \(model.toolchains[next].identifier). Enter to view."
+        case .openFocused:
+            guard model.screen == .list, let idx = model.focusedIndex else { return }
+            self.update(action: .selectIndex(idx))
         case .confirmSwitchFromDetail:
             guard case .detail(let selected) = model.screen else { return }
             model.screen = .progress("Switching to \(selected.identifier)...")
@@ -212,6 +228,12 @@ struct SwiftlyTUIApplication: TUIScene {
                 return .selectIndex(idx - 1)
             case .char("1"):
                 return .start(.list) // refresh
+            case .upArrow, .char("k"):
+                return .moveFocus(-1)
+            case .downArrow, .char("j"):
+                return .moveFocus(1)
+            case .enter, .char(" "):
+                return .openFocused
             case .char("q"), .char("Q"):
                 return .exit
             default:
@@ -302,27 +324,30 @@ private struct RootTUIView: TUIView {
                     if indexed.isEmpty {
                         Text("No toolchains found. Choose Install to add one.")
                     } else {
+                        let focused = model.focusedIndex
                         Table(
                             indexed,
                             id: \.element.identifier,
                             columnSpacing: 2,
                             rowSpacing: 0,
-                            divider: .line()
+                            divider: .line(),
+                            rowStyle: { (row: ToolchainRow, _) in
+                                if focused == row.offset {
+                                    return TableRowStyle.focusedWithMarkers()
+                                }
+                                return nil
+                            }
                         ) {
-                            TableColumn("#", width: .fixed(3), alignment: .trailing) { pair in
-                                let pair: (offset: Int, element: ToolchainViewModel) = pair
+                            TableColumn("#", width: .fixed(3), alignment: .trailing) { (pair: ToolchainRow) in
                                 Text("\(pair.offset + 1)").foregroundColor(.brightBlack)
                             }
-                            TableColumn("ID", width: .flex(min: 10)) { pair in
-                                let pair: (offset: Int, element: ToolchainViewModel) = pair
+                            TableColumn("ID", width: .flex(min: 10)) { (pair: ToolchainRow) in
                                 Text(pair.element.identifier).bold()
                             }
-                            TableColumn("Channel", width: .fitContent) { pair in
-                                let pair: (offset: Int, element: ToolchainViewModel) = pair
+                            TableColumn("Channel", width: .fitContent) { (pair: ToolchainRow) in
                                 Text(pair.element.channel.rawValue).foregroundColor(.brightBlack)
                             }
-                            TableColumn("Status", width: .fitContent) { pair in
-                                let pair: (offset: Int, element: ToolchainViewModel) = pair
+                            TableColumn("Status", width: .fitContent) { (pair: ToolchainRow) in
                                 if pair.element.isActive {
                                     Text("active").foregroundColor(.green).bold()
                                 } else {

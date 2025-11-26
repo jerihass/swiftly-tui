@@ -25,3 +25,8 @@
 ### Decision: SwifTeaUI branch `main`
 - **Rationale**: User requirement to track main; simplifies dependency management.
 - **Alternatives considered**: Pin commit/branch (rejected unless instability appears; document gaps per FR-009).
+
+### Navigation & UX Consistency (lists/tables)
+- **Pattern**: Use SwifTeaUI `Table`/`List` with focus highlighting; keyboard navigation supports arrows and vim-style `j/k`; number keys remain quick shortcuts.
+- **Focus behavior**: Up/Down or `k/j` move focus; Enter/Space opens focused item; `s` in detail triggers switch; `b` returns; `q/0` exits.
+- **Rationale**: Consistent, accessible navigation across screens; avoids manual string rendering and keeps UI predictable.
