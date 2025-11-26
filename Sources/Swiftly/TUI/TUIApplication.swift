@@ -60,11 +60,13 @@ struct SwiftlyTUIApplication: TUIScene {
     let ctx: SwiftlyCoreContext
     var adapterFactory: @Sendable (SwiftlyCoreContext) -> CoreActionsAdapter
     var controller: CoreActionsController
+    var recovery: OperationRecoveryController
 
     init(ctx: SwiftlyCoreContext, adapterFactory: @escaping @Sendable (SwiftlyCoreContext) -> CoreActionsAdapter = { CoreActionsAdapter(ctx: $0) }) {
         self.ctx = ctx
         self.adapterFactory = adapterFactory
         self.controller = CoreActionsController(ctx: ctx, adapterFactory: adapterFactory)
+        self.recovery = OperationRecoveryController(ctx: ctx, controller: self.controller)
     }
 
     func view(model: Model) -> some TUIView {
@@ -241,21 +243,9 @@ struct SwiftlyTUIApplication: TUIScene {
             guard let session = model.lastSession else { return }
             let target = session.targetIdentifier ?? ""
             model.screen = .progress("Retrying \(target)...")
-            let controller = self.controller
+            let recovery = self.recovery
             Task.detached {
-                let next: OperationSessionViewModel
-                switch session.type {
-                case .install:
-                    next = await controller.install(id: target)
-                case .update:
-                    next = await controller.update(id: target)
-                case .remove:
-                    next = await controller.remove(id: target)
-                case .switchToolchain:
-                    next = await controller.switchToolchain(id: target)
-                case .list, .detail:
-                    next = session
-                }
+                let next = await recovery.retryLastOperation(session)
                 SwifTea.dispatch(Action.operationSession(next))
             }
         case .cancelRecovery:
