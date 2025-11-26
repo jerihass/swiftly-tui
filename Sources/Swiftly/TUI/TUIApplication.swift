@@ -21,6 +21,7 @@ struct SwiftlyTUIApplication: TUIScene {
         var input: String = ""
         var lastSession: OperationSessionViewModel?
         var focusedIndex: Int? = nil
+        var navigationStack: [Screen] = []
     }
 
     enum ActionType: String {
@@ -45,6 +46,7 @@ struct SwiftlyTUIApplication: TUIScene {
         case confirmSwitchFromDetail
         case moveFocus(Int)
         case openFocused
+        case back
         case runSwitch(String)
         case operationResult(String)
         case operationSession(OperationSessionViewModel)
@@ -68,11 +70,13 @@ struct SwiftlyTUIApplication: TUIScene {
         switch action {
         case .showMenu:
             model.screen = .menu
+            model.navigationStack = []
             model.message = "Use numbers to choose an action."
             model.input = ""
         case .start(let type):
             switch type {
             case .list:
+                pushCurrentScreen()
                 model.screen = .progress("Loading toolchains...")
                 let ctx = self.ctx
                 let factory = adapterFactory
@@ -86,6 +90,7 @@ struct SwiftlyTUIApplication: TUIScene {
                 model.input = ""
                 model.message = "Enter toolchain to switch to:"
             case .install, .uninstall, .update:
+                pushCurrentScreen()
                 model.screen = .input(type)
                 model.input = ""
                 model.message = "Enter toolchain identifier for \(type.rawValue.lowercased()):"
@@ -152,6 +157,7 @@ struct SwiftlyTUIApplication: TUIScene {
                 model.message = "Invalid selection."
                 return
             }
+            pushCurrentScreen()
             let selected = model.toolchains[idx]
             model.focusedIndex = idx
             model.screen = .detail(selected)
@@ -165,6 +171,18 @@ struct SwiftlyTUIApplication: TUIScene {
         case .openFocused:
             guard model.screen == .list, let idx = model.focusedIndex else { return }
             self.update(action: .selectIndex(idx))
+        case .back:
+            if let previous = model.navigationStack.popLast() {
+                model.screen = previous
+                if case .list = previous, !model.toolchains.isEmpty {
+                    model.message = "Back to list. j/k or arrows move, Enter opens."
+                } else {
+                    model.message = "Use numbers to choose an action."
+                }
+            } else {
+                model.screen = .menu
+                model.message = "Use numbers to choose an action."
+            }
         case .confirmSwitchFromDetail:
             guard case .detail(let selected) = model.screen else { return }
             model.screen = .progress("Switching to \(selected.identifier)...")
@@ -234,6 +252,8 @@ struct SwiftlyTUIApplication: TUIScene {
                 return .moveFocus(1)
             case .enter, .char(" "):
                 return .openFocused
+            case .char("b"), .char("B"):
+                return .back
             case .char("q"), .char("Q"):
                 return .exit
             default:
@@ -257,7 +277,7 @@ struct SwiftlyTUIApplication: TUIScene {
             case .char("s"), .char("S"):
                 return .confirmSwitchFromDetail
             case .char("b"), .char("B"):
-                return .showMenu
+                return .back
             default:
                 return nil
             }
@@ -299,8 +319,6 @@ private struct RootTUIView: TUIView {
                     Text("4) Uninstall toolchain")
                     Text("5) Update toolchain")
                     Text("0) Exit")
-                    Text("")
-                    Text(model.message)
                 }
             case .progress(let message):
                 return VStack(spacing: 1, alignment: .leading) {
@@ -313,8 +331,6 @@ private struct RootTUIView: TUIView {
                     header
                     divider
                     Text(message)
-                    Text("")
-                    Text("Press 0 to exit or 1 to refresh list.")
                 }
             case .list:
                 let indexed = Array(model.toolchains.enumerated())
@@ -356,9 +372,6 @@ private struct RootTUIView: TUIView {
                             }
                         }
                     }
-                    Text("")
-                    Text("Enter number to view details, 1 to refresh, 0 to exit.")
-                    Text(model.message)
                 }
             case .detail(let toolchain):
                 return VStack(spacing: 1, alignment: .leading) {
@@ -369,8 +382,6 @@ private struct RootTUIView: TUIView {
                     Text("Status: \(toolchain.isActive ? "active" : "installed")")
                     if let location = toolchain.location { Text("Location: \(location)") }
                     if let meta = toolchain.metadata?.sizeDescription { Text("Size: \(meta)") }
-                    Text("")
-                    Text("Press 's' to switch, 'b' to go back.")
                     if let last = model.lastSession {
                         Text("Last result: \(last.stateDescription)")
                     }
@@ -381,13 +392,24 @@ private struct RootTUIView: TUIView {
                     divider
                     Text("\(type.rawValue) - enter toolchain identifier:")
                     Text("> \(model.input)")
-                    Text("Enter=submit, Esc=cancel")
-                    Text(model.message)
                 }
             }
         }()
 
-        return content.render()
+        let status = StatusBar(
+            leading: [
+                StatusBar.Segment("Path: \(breadcrumb(for: model.screen))", color: .brightBlack),
+                StatusBar.Segment(model.message, color: .white)
+            ],
+            trailing: [
+                StatusBar.Segment(hints(for: model.screen), color: .brightBlack)
+            ]
+        )
+
+        return VStack(spacing: 1, alignment: .leading) {
+            content
+            status
+        }.render()
     }
 }
 
@@ -414,4 +436,44 @@ private extension OperationSessionViewModel.State {
 
 private extension OperationSessionViewModel {
     var stateDescription: String { state.humanDescription }
+}
+
+private func breadcrumb(for screen: SwiftlyTUIApplication.Model.Screen) -> String {
+    switch screen {
+    case .menu:
+        return "Home"
+    case .list:
+        return "Home > Toolchains"
+    case .detail(let toolchain):
+        return "Home > Toolchains > \(toolchain.identifier)"
+    case .input(let type):
+        return "Home > \(type.rawValue.capitalized)"
+    case .progress:
+        return "Home > Working"
+    case .result:
+        return "Home > Result"
+    }
+}
+
+private func hints(for screen: SwiftlyTUIApplication.Model.Screen) -> String {
+    switch screen {
+    case .menu:
+        return "1 list · 2 switch · 3 install · 4 uninstall · 5 update · 0/q exit"
+    case .list:
+        return "j/k/arrow move · Enter/Space open · # jump · 1 refresh · b back · 0/q exit"
+    case .detail:
+        return "s switch · b back · q exit"
+    case .input:
+        return "Enter submit · Esc cancel · q exit"
+    case .progress:
+        return "Working… q exit"
+    case .result:
+        return "1 refresh list · b back · 0/q exit"
+    }
+}
+
+private extension SwiftlyTUIApplication {
+    mutating func pushCurrentScreen() {
+        model.navigationStack.append(model.screen)
+    }
 }
