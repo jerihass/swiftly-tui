@@ -65,15 +65,19 @@ To mirror CI's Linux leg for the TUI suite from macOS, use Docker:
 docker run --rm -v "$PWD":/work -w /work swift:6.0.3 swift test --filter TUITests
 ```
 
-## TUI command (coming soon)
+## TUI command (SwifTeaUI-driven)
 
-After implementation, launch the TUI via:
+Launch the TUI via:
 
 ```bash
 swift run swiftly tui
 ```
 
-Keyboard-only: arrows/Tab/Enter; confirm destructive actions when prompted.
+Keyboard-first:
+- Menu/list: numbers, j/k or arrows to move, Enter/Space opens, b back, q/0 exit.
+- Detail: s switch, b back.
+- Install/Update/Remove: type identifier (blank = latest/install default where applicable), Enter submit, Esc cancel.
+- Errors: r retry, c cancel; log path is shown when available.
 
 ## Updating swiftly
 

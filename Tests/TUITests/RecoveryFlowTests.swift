@@ -1,18 +1,21 @@
 import XCTest
 import SwifTeaUI
-import Atomics
 @testable import Swiftly
 
 final class RecoveryFlowTests: XCTestCase {
     func testRetryFromErrorReinvokesOperation() async {
         let firstCall = expectation(description: "first install fail")
         let retryCall = expectation(description: "retry install succeeds")
-        let attempts = ManagedAtomic(0)
+        actor AttemptCounter {
+            private var value = 0
+            func next() -> Int { value += 1; return value }
+        }
+        let attempts = AttemptCounter()
         let mock = MockAdapterFactory(
             list: { [] },
             switchAction: { _ in OperationSessionViewModel(type: .switchToolchain, targetIdentifier: nil, state: .succeeded(message: "ok"), logPath: nil) },
             installAction: { target in
-                let attempt = attempts.wrappingIncrementThenLoad(ordering: .relaxed)
+                let attempt = await attempts.next()
                 if attempt == 1 {
                     firstCall.fulfill()
                     return OperationSessionViewModel(

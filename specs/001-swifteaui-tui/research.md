@@ -26,6 +26,10 @@
 - **Rationale**: User requirement to track main; simplifies dependency management.
 - **Alternatives considered**: Pin commit/branch (rejected unless instability appears; document gaps per FR-009).
 
+### SwifTeaUI gaps (current)
+- None observed; all needed components (Table, StatusBar, VStack/HStack, Text) used successfully.
+- If future gaps appear (e.g., richer progress widgets), note them here and in the spec, and apply minimal fallbacks.
+
 ### Navigation & UX Consistency (lists/tables)
 - **Pattern**: Use SwifTeaUI `Table`/`List` with focus highlighting; keyboard navigation supports arrows and vim-style `j/k`; number keys remain quick shortcuts.
 - **Focus behavior**: Up/Down or `k/j` move focus; Enter/Space opens focused item; `s` in detail triggers switch; `b` returns; `q/0` exits.

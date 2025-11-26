@@ -35,6 +35,8 @@ jobs:
       - name: Build and Test
         run: swift test
         timeout-minutes: 60
+      - name: TUI Smoke (non-interactive)
+        run: printf '0\n' | swift run swiftly tui --assume-yes --verbose
 
   tests-selfhosted:
     name: Test (Self Hosted) / ${{ matrix.container }}

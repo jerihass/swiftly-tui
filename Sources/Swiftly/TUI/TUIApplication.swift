@@ -391,24 +391,22 @@ private struct RootTUIView: TUIView {
                 }
             case .list:
                 let indexed = Array(model.toolchains.enumerated())
+                let rowSpacing = ListLayoutAdapter.rowSpacing(for: indexed.count)
                 return VStack(spacing: 1, alignment: .leading) {
                     header
                     divider
                     if indexed.isEmpty {
-                        Text("No toolchains found. Choose Install to add one.")
+                        Text(ListLayoutAdapter.emptyStateMessage())
                     } else {
                         let focused = model.focusedIndex
                         Table(
                             indexed,
                             id: \.element.identifier,
                             columnSpacing: 2,
-                            rowSpacing: 0,
+                            rowSpacing: rowSpacing,
                             divider: .line(),
                             rowStyle: { (row: ToolchainRow, _) in
-                                if focused == row.offset {
-                                    return TableRowStyle.focusedWithMarkers()
-                                }
-                                return nil
+                                AccessibilityStyles.focusedRowStyle(hasFocus: focused == row.offset)
                             }
                         ) {
                             TableColumn("#", width: .fixed(3), alignment: .trailing) { (pair: ToolchainRow) in

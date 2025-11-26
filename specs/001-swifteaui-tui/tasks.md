@@ -112,12 +112,12 @@
 
 **Purpose**: Hardening, docs, and cross-story validation
 
-- [ ] T038 [P] Add accessibility and keyboard focus cues to components in Sources/Swiftly/TUI/Views/AccessibilityStyles.swift
-- [ ] T039 [P] Add layout/list density adjustments and empty-state styling in Sources/Swiftly/TUI/Views/ListLayoutAdapter.swift
-- [ ] T040 Validate progress update cadence (≤5s) across flows with timer-based tests in Tests/TUITests/PerformanceTests.swift
-- [ ] T041 Update README TUI section with component-driven flows and usage in README.md
-- [ ] T042 Final cross-platform CI validation (macOS + Linux) via `swift test` and `swift run swiftly tui --assume-yes` smoke script in .github/workflows/pull_request.yml
-- [ ] T043 [P] Document SwifTeaUI gaps (if any) and fallbacks per FR-009 in docs or specs/001-swifteaui-tui/research.md
+- [X] T038 [P] Add accessibility and keyboard focus cues to components in Sources/Swiftly/TUI/Views/AccessibilityStyles.swift
+- [X] T039 [P] Add layout/list density adjustments and empty-state styling in Sources/Swiftly/TUI/Views/ListLayoutAdapter.swift
+- [X] T040 Validate progress update cadence (≤5s) across flows with timer-based tests in Tests/TUITests/PerformanceTests.swift
+- [X] T041 Update README TUI section with component-driven flows and usage in README.md
+- [X] T042 Final cross-platform CI validation (macOS + Linux) via `swift test` and `swift run swiftly tui --assume-yes` smoke script in .github/workflows/pull_request.yml
+- [X] T043 [P] Document SwifTeaUI gaps (if any) and fallbacks per FR-009 in docs or specs/001-swifteaui-tui/research.md
 
 ---
 

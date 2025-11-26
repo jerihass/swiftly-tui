@@ -22,4 +22,10 @@ final class PerformanceTests: XCTestCase {
         let elapsed = Date().timeIntervalSince(start)
         XCTAssertLessThan(elapsed, 60, "Navigation to switch should take under 60 seconds")
     }
+
+    func testProgressCadenceStaysUnderFiveSeconds() {
+        let start = Date()
+        let updates = (1...5).map { start.addingTimeInterval(Double($0) * 4.0) }
+        XCTAssertTrue(ProgressCadence.isCadenceValid(updates: updates, maxInterval: 5.0))
+    }
 }
