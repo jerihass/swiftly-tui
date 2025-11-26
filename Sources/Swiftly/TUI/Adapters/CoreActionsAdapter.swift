@@ -1,5 +1,6 @@
 import Foundation
 import SwiftlyCore
+import SystemPackage
 
 /// Bridges SwiftlyCore operations for TUI flows.
 struct CoreActionsAdapter {
@@ -68,29 +69,119 @@ struct CoreActionsAdapter {
     }
 
     func installToolchain(id: String) async -> OperationSessionViewModel {
-        OperationSessionViewModel(
-            type: .install,
-            targetIdentifier: id,
-            state: .failed(message: "Not implemented", logPath: nil),
-            logPath: nil
-        )
+        await runOperation(type: .install, target: id) {
+            var config = try await Config.load(ctx)
+            let version = try await Install.determineToolchainVersion(ctx, version: id.isEmpty ? nil : id, config: &config)
+            let progressFile = try await makeProgressFile(prefix: "install", identifier: version.identifier)
+            _ = try await Install.execute(
+                ctx,
+                version: version,
+                &config,
+                useInstalledToolchain: false,
+                verifySignature: true,
+                verbose: false,
+                assumeYes: true,
+                progressFile: progressFile
+            )
+            return ("Installed \(version.identifier)", progressFile)
+        }
     }
 
     func uninstallToolchain(id: String) async -> OperationSessionViewModel {
-        OperationSessionViewModel(
-            type: .remove,
-            targetIdentifier: id,
-            state: .failed(message: "Not implemented", logPath: nil),
-            logPath: nil
-        )
+        await runOperation(type: .remove, target: id) {
+            var config = try await Config.load(ctx)
+            let selector = try ToolchainSelector(parsing: id)
+            let matches = config.listInstalledToolchains(selector: selector)
+            guard !matches.isEmpty else {
+                throw SwiftlyError(message: "No installed toolchains match \"\(id)\"")
+            }
+            for toolchain in matches {
+                try await Uninstall.execute(ctx, toolchain, &config, verbose: false)
+            }
+            return ("Uninstalled \(matches.count) toolchain(s)", nil)
+        }
     }
 
     func updateToolchain(id: String) async -> OperationSessionViewModel {
-        OperationSessionViewModel(
-            type: .update,
-            targetIdentifier: id,
-            state: .failed(message: "Not implemented", logPath: nil),
-            logPath: nil
-        )
+        await runOperation(type: .update, target: id) {
+            var config = try await Config.load(ctx)
+            let current: ToolchainVersion
+            if id.isEmpty {
+                guard let inUse = config.inUse else {
+                    throw SwiftlyError(message: "No toolchain in use to update. Provide an identifier.")
+                }
+                current = inUse
+            } else {
+                let selector = try ToolchainSelector(parsing: id)
+                guard let found = config.listInstalledToolchains(selector: selector).max() else {
+                    throw SwiftlyError(message: "No installed toolchains match \"\(id)\"")
+                }
+                current = found
+            }
+
+            let targetVersion = try await Install.determineToolchainVersion(ctx, version: id.isEmpty ? current.identifier : id, config: &config)
+            if targetVersion == current {
+                return ("Already up to date (\(current.identifier))", nil)
+            }
+
+            let progressFile = try await makeProgressFile(prefix: "update", identifier: targetVersion.identifier)
+            _ = try await Install.execute(
+                ctx,
+                version: targetVersion,
+                &config,
+                useInstalledToolchain: config.inUse == current,
+                verifySignature: true,
+                verbose: false,
+                assumeYes: true,
+                progressFile: progressFile
+            )
+            try await Uninstall.execute(ctx, current, &config, verbose: false)
+            return ("Updated \(current.identifier) → \(targetVersion.identifier)", progressFile)
+        }
+    }
+}
+
+private extension CoreActionsAdapter {
+    func makeProgressFile(prefix: String, identifier: String) async throws -> FilePath {
+        let logDir = Swiftly.currentPlatform.swiftlyHomeDir(ctx) / "logs"
+        try? await fs.mkdir(.parents, atPath: logDir)
+        let safeId = identifier.replacingOccurrences(of: "/", with: "-")
+        let path = logDir / "tui-\(prefix)-\(safeId).jsonl"
+        try await fs.create(file: path, contents: nil)
+        return path
+    }
+
+    func runOperation(
+        type: OperationSessionViewModel.OperationType,
+        target: String?,
+        work: () async throws -> (message: String, logPath: FilePath?)
+    ) async -> OperationSessionViewModel {
+        do {
+            let (message, logPath) = try await work()
+            return OperationSessionViewModel(
+                type: type,
+                targetIdentifier: target,
+                state: .succeeded(message: message),
+                logPath: logPath?.string
+            )
+        } catch {
+            return OperationSessionViewModel(
+                type: type,
+                targetIdentifier: target,
+                state: .failed(message: "\(typeLabel(type)) failed: \(error)", logPath: nil),
+                logPath: nil
+            )
+        }
+    }
+
+    func typeLabel(_ type: OperationSessionViewModel.OperationType) -> String {
+        switch type {
+        case .list: return "List"
+        case .detail: return "Detail"
+        case .switchToolchain: return "Switch"
+        case .install: return "Install"
+        case .update: return "Update"
+        case .remove: return "Remove"
+        }
     }
 }

@@ -23,10 +23,10 @@
 **Purpose**: Core adapters/state shared across all user stories
 
 - [X] T005 Create shared TUI state models (ToolchainViewModel, OperationSessionViewModel) in Sources/Swiftly/TUI/Models/
-- [ ] T006 [P] Implement CoreActionsAdapter against SwiftlyCore list/switch/install/update/remove in Sources/Swiftly/TUI/Adapters/CoreActionsAdapter.swift with error surfaces/log paths
-- [ ] T007 [P] Add SwifTeaUI navigation/store scaffolding (root scene + reducer wiring) in Sources/Swiftly/TUI/TUIApplication.swift
+- [X] T006 [P] Implement CoreActionsAdapter against SwiftlyCore list/switch/install/update/remove in Sources/Swiftly/TUI/Adapters/CoreActionsAdapter.swift with error surfaces/log paths
+- [X] T007 [P] Add SwifTeaUI navigation/store scaffolding (root scene + reducer wiring) in Sources/Swiftly/TUI/TUIApplication.swift
 - [X] T008 Establish deterministic fixtures/mocks for toolchains and failures in Tests/TUITests/Fixtures/
-- [ ] T009 Add logging/output adapter to channel stdout/stderr per constitution in Sources/Swiftly/TUI/Adapters/OutputAdapter.swift
+- [X] T009 Add logging/output adapter to channel stdout/stderr per constitution in Sources/Swiftly/TUI/Adapters/OutputAdapter.swift
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
