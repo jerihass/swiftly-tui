@@ -7,6 +7,9 @@ struct CoreActionsAdapter {
     let ctx: SwiftlyCoreContext
     var listOverride: (() async -> [ToolchainViewModel])?
     var switchOverride: ((String) async -> OperationSessionViewModel)?
+    var installOverride: ((String) async -> OperationSessionViewModel)?
+    var uninstallOverride: ((String) async -> OperationSessionViewModel)?
+    var updateOverride: ((String) async -> OperationSessionViewModel)?
 
     func listToolchains() async -> [ToolchainViewModel] {
         if let listOverride {
@@ -69,7 +72,10 @@ struct CoreActionsAdapter {
     }
 
     func installToolchain(id: String) async -> OperationSessionViewModel {
-        await runOperation(type: .install, target: id) {
+        if let installOverride {
+            return await installOverride(id)
+        }
+        return await runOperation(type: .install, target: id) {
             var config = try await Config.load(ctx)
             let version = try await Install.determineToolchainVersion(ctx, version: id.isEmpty ? nil : id, config: &config)
             let progressFile = try await makeProgressFile(prefix: "install", identifier: version.identifier)
@@ -88,12 +94,18 @@ struct CoreActionsAdapter {
     }
 
     func uninstallToolchain(id: String) async -> OperationSessionViewModel {
-        await runOperation(type: .remove, target: id) {
+        if let uninstallOverride {
+            return await uninstallOverride(id)
+        }
+        return await runOperation(type: .remove, target: id) {
             var config = try await Config.load(ctx)
             let selector = try ToolchainSelector(parsing: id)
             let matches = config.listInstalledToolchains(selector: selector)
             guard !matches.isEmpty else {
                 throw SwiftlyError(message: "No installed toolchains match \"\(id)\"")
+            }
+            if let active = config.inUse, matches.contains(active) {
+                throw SwiftlyError(message: "Cannot remove active toolchain \(active.name). Switch first.")
             }
             for toolchain in matches {
                 try await Uninstall.execute(ctx, toolchain, &config, verbose: false)
@@ -103,7 +115,10 @@ struct CoreActionsAdapter {
     }
 
     func updateToolchain(id: String) async -> OperationSessionViewModel {
-        await runOperation(type: .update, target: id) {
+        if let updateOverride {
+            return await updateOverride(id)
+        }
+        return await runOperation(type: .update, target: id) {
             var config = try await Config.load(ctx)
             let current: ToolchainVersion
             if id.isEmpty {

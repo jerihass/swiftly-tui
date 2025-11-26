@@ -67,18 +67,18 @@
 
 ### Tests for User Story 2 (MANDATORY - add before implementation) ⚠️
 
-- [ ] T021 [P] [US2] Install flow progress and completion tests in Tests/TUITests/InstallFlowTests.swift
-- [ ] T022 [P] [US2] Update flow confirmation and summary tests in Tests/TUITests/UpdateFlowTests.swift
-- [ ] T023 [P] [US2] Remove flow guard (active toolchain) and confirmation tests in Tests/TUITests/RemoveFlowTests.swift
-- [ ] T024 [P] [US2] Invalid identifier validation and messaging tests in Tests/TUITests/InstallFlowTests.swift
+- [X] T021 [P] [US2] Install flow progress and completion tests in Tests/TUITests/InstallFlowTests.swift
+- [X] T022 [P] [US2] Update flow confirmation and summary tests in Tests/TUITests/UpdateFlowTests.swift
+- [X] T023 [P] [US2] Remove flow guard (active toolchain) and confirmation tests in Tests/TUITests/RemoveFlowTests.swift
+- [X] T024 [P] [US2] Invalid identifier (empty input) validation and messaging tests in Tests/TUITests/InstallFlowTests.swift
 
 ### Implementation for User Story 2
 
-- [ ] T025 [P] [US2] Implement install scene (default latest-stable + identifier input) with progress updates in Sources/Swiftly/TUI/Views/InstallView.swift
-- [ ] T026 [US2] Implement update scene with pre-change summary and progress in Sources/Swiftly/TUI/Views/UpdateView.swift
-- [ ] T027 [US2] Implement remove scene with active-check guard and confirmation in Sources/Swiftly/TUI/Views/RemoveView.swift
-- [ ] T028 [US2] Hook install/update/remove actions to CoreActionsAdapter with progress tick updates in Sources/Swiftly/TUI/Controllers/CoreActionsController.swift
-- [ ] T029 [P] [US2] Add contract assertions against tui-actions.yaml for install/update/remove in Tests/TUITests/Contract/TUIActionsContractTests.swift
+- [X] T025 [P] [US2] Implement install scene (default latest-stable + identifier input) with progress updates in Sources/Swiftly/TUI/Views/InstallView.swift
+- [X] T026 [US2] Implement update scene with pre-change summary and progress in Sources/Swiftly/TUI/Views/UpdateView.swift
+- [X] T027 [US2] Implement remove scene with active-check guard and confirmation in Sources/Swiftly/TUI/Views/RemoveView.swift
+- [X] T028 [US2] Hook install/update/remove actions to CoreActionsAdapter with progress tick updates in Sources/Swiftly/TUI/Controllers/CoreActionsController.swift
+- [X] T029 [P] [US2] Add contract assertions against tui-actions.yaml for install/update/remove in Tests/TUITests/Contract/TUIActionsContractTests.swift
 - [ ] T030 [US2] Add identifier validation and user feedback for invalid inputs in Sources/Swiftly/TUI/Views/InstallView.swift
 
 **Checkpoint**: User Story 2 independently testable (install/update/remove with progress and summaries).
@@ -150,12 +150,14 @@
 ## Implementation Strategy
 
 ### MVP First (User Story 1 Only)
+
 1. Complete Phase 1: Setup
 2. Complete Phase 2: Foundational
 3. Complete Phase 3: User Story 1
 4. Validate US1 independently (tests in T010–T014)
 
 ### Incremental Delivery
+
 1. Finish Setup + Foundational
 2. Deliver US1 (MVP) → tests green → demo
 3. Deliver US2 → tests green → demo
@@ -163,6 +165,7 @@
 5. Polish and cross-cutting hardening
 
 ### Notes
+
 - [P] tasks = different files, no dependencies
 - Each user story should be independently testable in headless mode
 - Write tests first per constitution; keep CLI contract stable

@@ -56,10 +56,12 @@ struct SwiftlyTUIApplication: TUIScene {
     var model: Model = Model()
     let ctx: SwiftlyCoreContext
     var adapterFactory: @Sendable (SwiftlyCoreContext) -> CoreActionsAdapter
+    var controller: CoreActionsController
 
     init(ctx: SwiftlyCoreContext, adapterFactory: @escaping @Sendable (SwiftlyCoreContext) -> CoreActionsAdapter = { CoreActionsAdapter(ctx: $0) }) {
         self.ctx = ctx
         self.adapterFactory = adapterFactory
+        self.controller = CoreActionsController(ctx: ctx, adapterFactory: adapterFactory)
     }
 
     func view(model: Model) -> some TUIView {
@@ -78,11 +80,9 @@ struct SwiftlyTUIApplication: TUIScene {
             case .list:
                 pushCurrentScreen()
                 model.screen = .progress("Loading toolchains...")
-                let ctx = self.ctx
-                let factory = adapterFactory
+                let controller = self.controller
                 Task.detached {
-                    let adapter = factory(ctx)
-                    let list = await adapter.listToolchains()
+                    let list = await controller.list()
                     SwifTea.dispatch(Action.listLoaded(list))
                 }
             case .switchActive:
@@ -105,29 +105,45 @@ struct SwiftlyTUIApplication: TUIScene {
             switch model.screen {
             case .input(let type):
                 let value = model.input.trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !value.isEmpty else {
-                    model.message = "Input cannot be empty."
-                    return
-                }
                 switch type {
                 case .switchActive:
+                    guard !value.isEmpty else {
+                        model.message = "Input cannot be empty."
+                        return
+                    }
                     model.screen = .progress("Switching to \(value)...")
-                    let ctx = self.ctx
-                    let factory = adapterFactory
+                    let controller = self.controller
                     Task.detached {
-                        let adapter = factory(ctx)
-                        let session = await adapter.activateToolchain(id: value)
+                        let session = await controller.switchToolchain(id: value)
                         SwifTea.dispatch(Action.operationSession(session))
                     }
                 case .install:
-                    model.screen = .progress("Install \(value) not yet implemented.")
-                    SwifTea.dispatch(Action.operationResult("Install \(value): not implemented yet."))
+                    let target = value
+                    model.screen = .progress(target.isEmpty ? "Installing latest stable..." : "Installing \(target)...")
+                    let controller = self.controller
+                    Task.detached {
+                        let session = await controller.install(id: target)
+                        SwifTea.dispatch(Action.operationSession(session))
+                    }
                 case .uninstall:
-                    model.screen = .progress("Uninstall \(value) not yet implemented.")
-                    SwifTea.dispatch(Action.operationResult("Uninstall \(value): not implemented yet."))
+                    guard !value.isEmpty else {
+                        model.message = "Input cannot be empty."
+                        return
+                    }
+                    model.screen = .progress("Removing \(value)...")
+                    let controller = self.controller
+                    Task.detached {
+                        let session = await controller.remove(id: value)
+                        SwifTea.dispatch(Action.operationSession(session))
+                    }
                 case .update:
-                    model.screen = .progress("Update \(value) not yet implemented.")
-                    SwifTea.dispatch(Action.operationResult("Update \(value): not implemented yet."))
+                    let target = value
+                    model.screen = .progress(target.isEmpty ? "Updating in-use toolchain..." : "Updating \(target)...")
+                    let controller = self.controller
+                    Task.detached {
+                        let session = await controller.update(id: target)
+                        SwifTea.dispatch(Action.operationSession(session))
+                    }
                 case .list, .exit:
                     break
                 }
@@ -140,11 +156,9 @@ struct SwiftlyTUIApplication: TUIScene {
             model.message = "Use numbers to choose an action."
         case .loadList:
             model.screen = .progress("Loading toolchains...")
-            let ctx = self.ctx
-            let factory = adapterFactory
+            let controller = self.controller
             Task.detached {
-                let adapter = factory(ctx)
-                let list = await adapter.listToolchains()
+                let list = await controller.list()
                 SwifTea.dispatch(Action.listLoaded(list))
             }
         case .listLoaded(let list):
@@ -186,11 +200,9 @@ struct SwiftlyTUIApplication: TUIScene {
         case .confirmSwitchFromDetail:
             guard case .detail(let selected) = model.screen else { return }
             model.screen = .progress("Switching to \(selected.identifier)...")
-            let ctx = self.ctx
-            let factory = adapterFactory
+            let controller = self.controller
             Task.detached {
-                let adapter = factory(ctx)
-                let session = await adapter.activateToolchain(id: selected.identifier)
+                let session = await controller.switchToolchain(id: selected.identifier)
                 SwifTea.dispatch(Action.operationSession(session))
             }
         case .runSwitch:
@@ -387,11 +399,27 @@ private struct RootTUIView: TUIView {
                     }
                 }
             case .input(let type):
+                let view: any TUIView = {
+                    switch type {
+                    case .install:
+                        return InstallView(header: VStack { header; divider }, input: model.input)
+                    case .update:
+                        return UpdateView(header: VStack { header; divider }, input: model.input)
+                    case .uninstall:
+                        return RemoveView(header: VStack { header; divider }, input: model.input)
+                    case .switchActive:
+                        return VStack(spacing: 1, alignment: .leading) {
+                            header
+                            divider
+                            Text("Switch - enter toolchain identifier:")
+                            Text("> \(model.input)")
+                        }
+                    case .list, .exit:
+                        return VStack(spacing: 1, alignment: .leading) { header; divider; Text("> \(model.input)") }
+                    }
+                }()
                 return VStack(spacing: 1, alignment: .leading) {
-                    header
-                    divider
-                    Text("\(type.rawValue) - enter toolchain identifier:")
-                    Text("> \(model.input)")
+                    view
                 }
             }
         }()
