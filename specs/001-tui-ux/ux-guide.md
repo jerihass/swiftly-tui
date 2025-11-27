@@ -24,6 +24,7 @@ Define reusable patterns for layouts, keyboard hints, focus, density, and messag
 ## Input & Errors
 - Inline validation/error messages retain focus; no clearing of user input on failure.
 - Progress/error views keep hints visible and show log path when available.
+- Use SwifTeaUI Spinner for in-flight states; add ProgressMeter when percentage is known.
 
 ## Themes & Framing
 - Use SwifTeaUI `Border` + theme colors for frames (no custom ASCII borders).
