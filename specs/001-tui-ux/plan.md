@@ -5,7 +5,7 @@
 
 ## Summary
 
-Unify TUI layouts (header/body/status with always-visible keyboard hints), strengthen focus cues, and make lists responsive at 80-col terminals while documenting UX patterns for future flows. Approach: apply SwifTeaUI components (Table, StatusBar, VStack/HStack, Text) with density rules and shared hint sets; add UX guide doc and tests for accessibility cues, layout consistency, and progress/error hinting.
+Unify TUI layouts (header/body/status with always-visible keyboard hints), strengthen focus cues, ensure the main menu surfaces all core actions (list/switch/install/uninstall/update), and make lists responsive at 80-col terminals while documenting UX patterns for future flows. Approach: apply SwifTeaUI components (Table, StatusBar, VStack/HStack, Text, bordered/themed frames when available) with density rules and shared hint sets; add UX guide doc and tests for accessibility cues, layout consistency, menu coverage, and progress/error hinting. Document and fall back gracefully if SwifTeaUI lacks border/theme components.
 
 ## Technical Context
 

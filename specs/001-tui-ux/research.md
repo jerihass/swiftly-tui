@@ -20,4 +20,4 @@
 
 ### SwifTeaUI components and gaps
 - Components to leverage: `Table`, `StatusBar`, `Text`, `VStack/HStack`, focus row styles.
-- Current gaps: None identified; if richer progress/error widgets are needed, document for SwifTeaUI team before implementation.
+- Current gaps: None identified; if bordered frames/themes or richer progress/error widgets are needed but missing, document for SwifTeaUI team before implementation and use minimal fallbacks.
