@@ -423,13 +423,16 @@ private struct ScreenFrame: TUIView {
             padding: 1,
             color: theme.frameBorder,
             background: theme.background,
-            VStack(spacing: 1, alignment: .leading) {
-                Text("swiftly TUI")
-                    .foregroundColor(theme.accent)
-                    .bold()
-                Text("----------------------")
-                    .foregroundColor(theme.mutedText)
-                bodyContent()
+            ZStack(alignment: .topLeading) {
+                FixedSpace(width: LayoutSizing.contentWidth, height: LayoutSizing.minHeight(for: model.screen))
+                VStack(spacing: 1, alignment: .leading) {
+                    Text("swiftly TUI")
+                        .foregroundColor(theme.accent)
+                        .bold()
+                    Text("----------------------")
+                        .foregroundColor(theme.mutedText)
+                    bodyContent()
+                }
             }
         ).render()
     }
@@ -568,6 +571,22 @@ private struct EmptyHeader: TUIView {
     func render() -> String { "" }
 }
 
+/// Provides a baseline width/height so all screens share consistent framing.
+private struct FixedSpace: TUIView {
+    typealias Body = Never
+    let width: Int
+    let height: Int
+
+    var body: Never { fatalError("FixedSpace has no body") }
+
+    func render() -> String {
+        let safeWidth = max(0, width)
+        let line = String(repeating: " ", count: safeWidth)
+        let rows = max(1, height)
+        return Array(repeating: line, count: rows).joined(separator: "\n")
+    }
+}
+
 internal extension OperationSessionViewModel.State {
     var humanDescription: String {
         switch self {
@@ -606,6 +625,17 @@ internal extension OperationSessionViewModel.State {
 private extension OperationSessionViewModel {
     var stateDescription: String { state.humanDescription }
     var stateErrorDescription: String { state.humanErrorMessage }
+}
+
+/// Layout sizing rules for consistent framing across screens.
+private enum LayoutSizing {
+    static let contentWidth: Int = 72
+    static let baseHeight: Int = 18
+
+    static func minHeight(for screen: SwiftlyTUIApplication.Model.Screen) -> Int {
+        // Keep a consistent baseline height across all screens; taller views can extend naturally.
+        return baseHeight
+    }
 }
 
 private func breadcrumb(for screen: SwiftlyTUIApplication.Model.Screen) -> String {

@@ -6,6 +6,7 @@ Define reusable patterns for layouts, keyboard hints, focus, density, and messag
 ## Layout Skeleton (All Screens)
 - Header: product name + current screen title.
 - Body: primary content (menu, list/table, detail, input, error/progress).
+- Fixed baseline canvas: consistent width and baseline height (~18 lines) so screens don’t jump; use SwifTeaUI sizing/padding utilities (e.g., ZStack + spacer).
 - Status: breadcrumbs on the left; context-specific keyboard hints on the right.
 
 ## Keyboard Conventions
