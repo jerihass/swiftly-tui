@@ -44,11 +44,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T010 [P] [US1] Refactor TUIApplication views to use shared header/body/status wrapper with injected hints in Sources/Swiftly/TUI/TUIApplication.swift
-- [ ] T011 [P] [US1] Apply focus markers to all selectable rows/inputs in Sources/Swiftly/TUI/Views (list/detail/input/error)
-- [ ] T012 [US1] Add inline validation messaging retention for inputs/errors in Sources/Swiftly/TUI/Views/Input/Error views
-- [ ] T013 [US1] Update StatusBar hints to match keyboard bindings across screens in Sources/Swiftly/TUI/TUIApplication.swift
-- [ ] T013a [US1] Implement bordered/themed frame (or fallback) for menu/list/detail/input/error screens using SwifTeaUI; document gaps if components missing in Sources/Swiftly/TUI/Views
+- [X] T010 [P] [US1] Refactor TUIApplication views to use shared header/body/status wrapper with injected hints in Sources/Swiftly/TUI/TUIApplication.swift
+- [X] T011 [P] [US1] Apply focus markers to all selectable rows/inputs in Sources/Swiftly/TUI/Views (list/detail/input/error)
+- [X] T012 [US1] Add inline validation messaging retention for inputs/errors in Sources/Swiftly/TUI/Views/Input/Error views
+- [X] T013 [US1] Update StatusBar hints to match keyboard bindings across screens in Sources/Swiftly/TUI/TUIApplication.swift
+- [X] T013a [US1] Implement SwifTeaUI Border/themed framing for menu/list/detail/input/error screens (no ASCII fallback) and note any missing widgets in Sources/Swiftly/TUI/Views
 
 **Checkpoint**: User Story 1 independently testable (consistent layout/hints/focus)
 

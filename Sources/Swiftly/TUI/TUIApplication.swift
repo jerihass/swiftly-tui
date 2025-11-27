@@ -61,6 +61,8 @@ struct SwiftlyTUIApplication: TUIScene {
     var adapterFactory: @Sendable (SwiftlyCoreContext) -> CoreActionsAdapter
     var controller: CoreActionsController
     var recovery: OperationRecoveryController
+    var overlayPresenter: OverlayPresenter = OverlayPresenter()
+    private let theme: SwifTeaTheme = .basic
 
     init(ctx: SwiftlyCoreContext, adapterFactory: @escaping @Sendable (SwiftlyCoreContext) -> CoreActionsAdapter = { CoreActionsAdapter(ctx: $0) }) {
         self.ctx = ctx
@@ -70,7 +72,7 @@ struct SwiftlyTUIApplication: TUIScene {
     }
 
     func view(model: Model) -> some TUIView {
-        RootTUIView(model: model)
+        RootTUIView(model: model, overlay: overlayPresenter, theme: theme)
     }
 
     mutating func update(action: Action) {
@@ -236,12 +238,21 @@ struct SwiftlyTUIApplication: TUIScene {
             case .succeeded(let message):
                 model.screen = .result(message)
                 model.message = message
+                overlayPresenter.presentToast(style: .success) {
+                    Text(message).bold()
+                }
             case .failed(let message, _):
                 model.screen = .error(session)
                 model.message = message
+                overlayPresenter.presentToast(style: .error) {
+                    Text(message).bold()
+                }
             case .cancelled(let message, _):
                 model.screen = .error(session)
                 model.message = message ?? "Cancelled"
+                overlayPresenter.presentToast(style: .warning) {
+                    Text(message ?? "Cancelled")
+                }
             case .pending, .running:
                 model.screen = .progress("Running...")
             }
@@ -351,30 +362,37 @@ struct SwiftlyTUIApplication: TUIScene {
     }
 
     mutating func handleTerminalResize(from _: TerminalSize, to _: TerminalSize) {}
-    mutating func handleFrame(deltaTime _: TimeInterval) {}
+    mutating func handleFrame(deltaTime: TimeInterval) {
+        overlayPresenter.tick(deltaTime: deltaTime)
+    }
 }
 
 private struct RootTUIView: TUIView {
     typealias Body = Never
     let model: SwiftlyTUIApplication.Model
+    let overlay: OverlayPresenter
+    let theme: SwifTeaTheme
 
     var body: Never { fatalError("RootTUIView has no body") }
 
     func render() -> String {
-        VStack(spacing: 1, alignment: .leading) {
-            ScreenFrame(model: model)
-            statusBar
+        OverlayHost(presenter: overlay) {
+            VStack(spacing: 1, alignment: .leading) {
+                ScreenFrame(model: model, theme: theme)
+                statusBar
+                Text("") // reserve a line for bottom toasts without overwriting status content
+            }
         }.render()
     }
 
     private var statusBar: StatusBar {
         StatusBar(
             leading: [
-                StatusBar.Segment("Path: \(breadcrumb(for: model.screen))", color: .brightBlack),
-                StatusBar.Segment(model.message, color: .white)
+                StatusBar.Segment("Path: \(breadcrumb(for: model.screen))", color: theme.mutedText),
+                StatusBar.Segment(model.message, color: theme.primaryText)
             ],
             trailing: [
-                StatusBar.Segment(KeyboardHints.description(for: hintContext(for: model.screen)), color: .brightBlack)
+                StatusBar.Segment(KeyboardHints.description(for: hintContext(for: model.screen)), color: theme.mutedText)
             ]
         )
     }
@@ -396,15 +414,24 @@ private struct RootTUIView: TUIView {
 private struct ScreenFrame: TUIView {
     typealias Body = Never
     let model: SwiftlyTUIApplication.Model
+    let theme: SwifTeaTheme
 
     var body: Never { fatalError("ScreenFrame has no body") }
 
     func render() -> String {
-        VStack(spacing: 1, alignment: .leading) {
-            Text("swiftly TUI").bold()
-            Text("----------------------")
-            bodyContent()
-        }.render()
+        Border(
+            padding: 1,
+            color: theme.frameBorder,
+            background: theme.background,
+            VStack(spacing: 1, alignment: .leading) {
+                Text("swiftly TUI")
+                    .foregroundColor(theme.accent)
+                    .bold()
+                Text("----------------------")
+                    .foregroundColor(theme.mutedText)
+                bodyContent()
+            }
+        ).render()
     }
 
     private func bodyContent() -> any TUIView {
@@ -432,8 +459,8 @@ private struct ScreenFrame: TUIView {
             if indexed.isEmpty {
                 let empty = ListLayoutAdapter.emptyState()
                 return VStack(spacing: 1, alignment: .leading) {
-                    Text(empty.title)
-                    Text(empty.guidance).foregroundColor(.brightBlack)
+                    Text(empty.title).foregroundColor(theme.primaryText)
+                    Text(empty.guidance).foregroundColor(theme.mutedText)
                 }
             } else {
                 let focused = model.focusedIndex
@@ -445,37 +472,39 @@ private struct ScreenFrame: TUIView {
                     rowSpacing: rowSpacing,
                     divider: .line(),
                     rowStyle: { (row: ToolchainRow, _) in
-                        AccessibilityStyles.focusedRowStyle(hasFocus: focused == row.offset)
+                        AccessibilityStyles.focusedRowStyle(hasFocus: focused == row.offset, theme: theme)
                     }
                 ) {
                     TableColumn("#", width: .fixed(3), alignment: .trailing) { (pair: ToolchainRow) in
-                        Text("\(pair.offset + 1)").foregroundColor(.brightBlack)
+                        Text("\(pair.offset + 1)").foregroundColor(theme.mutedText)
                     }
                     TableColumn("ID", width: .flex(min: layout.idMinWidth)) { (pair: ToolchainRow) in
                         let id = ListLayoutAdapter.truncateIdentifier(pair.element.identifier)
-                        Text(id).bold()
+                        Text(id)
+                            .foregroundColor(theme.primaryText)
+                            .bold()
                     }
                     TableColumn("Channel", width: .fitContent) { (pair: ToolchainRow) in
-                        Text(pair.element.channel.rawValue).foregroundColor(.brightBlack)
+                        Text(pair.element.channel.rawValue).foregroundColor(theme.mutedText)
                     }
                     TableColumn("Status", width: .fitContent) { (pair: ToolchainRow) in
                         if pair.element.isActive {
-                            Text("active").foregroundColor(.green).bold()
+                            Text("active").foregroundColor(theme.success).bold()
                         } else {
-                            Text("installed")
+                            Text("installed").foregroundColor(theme.primaryText)
                         }
                     }
                 }
             }
         case .detail(let toolchain):
             return VStack(spacing: 1, alignment: .leading) {
-                Text("Toolchain: \(toolchain.identifier)").bold()
-                Text("Channel: \(toolchain.channel.rawValue)")
-                Text("Status: \(toolchain.isActive ? "active" : "installed")")
-                if let location = toolchain.location { Text("Location: \(location)") }
-                if let meta = toolchain.metadata?.sizeDescription { Text("Size: \(meta)") }
+                Text("Toolchain: \(toolchain.identifier)").bold().foregroundColor(theme.primaryText)
+                Text("Channel: \(toolchain.channel.rawValue)").foregroundColor(theme.mutedText)
+                Text("Status: \(toolchain.isActive ? "active" : "installed")").foregroundColor(theme.primaryText)
+                if let location = toolchain.location { Text("Location: \(location)").foregroundColor(theme.primaryText) }
+                if let meta = toolchain.metadata?.sizeDescription { Text("Size: \(meta)").foregroundColor(theme.mutedText) }
                 if let last = model.lastSession {
-                    Text("Last result: \(last.stateDescription)")
+                    Text("Last result: \(last.stateDescription)").foregroundColor(theme.mutedText)
                 }
             }
         case .error(let session):
@@ -487,20 +516,37 @@ private struct ScreenFrame: TUIView {
         case .input(let type):
             switch type {
             case .install:
-                return InstallView(header: EmptyHeader(), input: model.input)
+                return InstallView(header: EmptyHeader(), input: model.input, validation: validationMessage(for: type))
             case .update:
-                return UpdateView(header: EmptyHeader(), input: model.input)
+                return UpdateView(header: EmptyHeader(), input: model.input, validation: validationMessage(for: type))
             case .uninstall:
-                return RemoveView(header: EmptyHeader(), input: model.input)
+                return RemoveView(header: EmptyHeader(), input: model.input, validation: validationMessage(for: type))
             case .switchActive:
                 return VStack(spacing: 1, alignment: .leading) {
                     Text("Switch - enter toolchain identifier:")
                     Text(AccessibilityStyles.focusIndicator(for: model.input))
+                    if let validation = validationMessage(for: type) {
+                        Text(validation).foregroundColor(.red)
+                    }
                 }
             case .list, .exit:
                 return VStack(spacing: 1, alignment: .leading) { Text(AccessibilityStyles.focusIndicator(for: model.input)) }
             }
         }
+    }
+
+    private func validationMessage(for type: SwiftlyTUIApplication.ActionType) -> String? {
+        let defaults: [SwiftlyTUIApplication.ActionType: String] = [
+            .install: "Enter toolchain identifier for install:",
+            .update: "Enter toolchain identifier for update:",
+            .uninstall: "Enter toolchain identifier for uninstall:",
+            .switchActive: "Enter toolchain to switch to:"
+        ]
+        guard let expected = defaults[type] else { return nil }
+        let current = model.message
+        if current == expected { return nil }
+        if current.hasPrefix("Enter toolchain identifier") { return nil } // still prompt-like
+        return current
     }
 }
 

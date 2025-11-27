@@ -8,8 +8,8 @@ enum AccessibilityStyles {
     }
 
     /// Returns the shared row style used across all table/list views.
-    static func focusedRowStyle(hasFocus: Bool) -> TableRowStyle? {
-        hasFocus ? TableRowStyle.focusedWithMarkers() : nil
+    static func focusedRowStyle(hasFocus: Bool, theme: SwifTeaTheme = .basic) -> TableRowStyle? {
+        hasFocus ? TableRowStyle.focusedWithMarkers(accent: theme.accent) : nil
     }
 }
 

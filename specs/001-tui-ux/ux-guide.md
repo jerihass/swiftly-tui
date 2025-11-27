@@ -26,8 +26,9 @@ Define reusable patterns for layouts, keyboard hints, focus, density, and messag
 - Progress/error views keep hints visible and show log path when available.
 
 ## Themes & Framing
-- Prefer bordered/themed frames if provided by SwifTeaUI; fall back to simple layout if unavailable.
-- Document missing components needed from SwifTeaUI (e.g., border frame, theme tokens, richer progress widgets).
+- Use SwifTeaUI `Border` + theme colors for frames (no custom ASCII borders).
+- Use SwifTeaUI toasts for transient success/error/info; reserve modals for confirmations or critical messaging.
+- Document any missing components (e.g., richer progress widgets) for the SwifTeaUI team.
 
 ## Empty States
 - Provide actionable guidance (e.g., “No toolchains installed. Use Install (3) to add one.”).

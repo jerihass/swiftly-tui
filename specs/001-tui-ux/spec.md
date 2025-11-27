@@ -59,7 +59,7 @@ Contributors need a concise TUI UX guideline (patterns, shortcuts, layout rules)
 - Empty lists: show actionable guidance (install prompt) with intact keyboard hints.
 - Error/retry screens: still show hints and log path without crowding status bar.
 - Mixed navigation (numbers + arrows + vim keys): focus state remains correct after switching input methods.
-- SwifTeaUI border/theme component missing: document the gap, apply minimal fallback frame without breaking readability.
+- Use SwifTeaUI border/theme components; if a needed component is absent (e.g., richer progress widgets), document it for SwifTeaUI without custom ASCII fallbacks.
 
 ## Requirements *(mandatory)*
 
@@ -71,7 +71,7 @@ Contributors need a concise TUI UX guideline (patterns, shortcuts, layout rules)
 - **FR-004**: Input/error screens MUST show inline validation or failure messages without losing focus, including invalid identifiers and retries, while preserving the shared layout.
 - **FR-005**: A TUI UX guideline MUST be published alongside the feature, documenting layout blocks, keyboard conventions, focus/empty/error patterns, and progress/hint expectations for future contributors.
 - **FR-006**: The main menu MUST surface all core actions (list, switch, install, uninstall/remove, update) with clear labels and shortcuts, keeping parity with CLI capabilities.
-- **FR-007**: Screens SHOULD use a bordered or themed frame when available in SwifTeaUI to improve readability; if components are missing, document the gap for the SwifTeaUI team and fall back gracefully without breaking layouts.
+- **FR-007**: Screens SHOULD use SwifTeaUI bordered/themed framing with theme-driven coloring (no custom ASCII borders); if a needed component is missing, document it for the SwifTeaUI team.
 
 ### Key Entities *(include if feature involves data)*
 

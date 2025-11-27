@@ -4,6 +4,7 @@ struct UpdateView: TUIView {
     typealias Body = Never
     let header: any TUIView
     let input: String
+    let validation: String?
 
     var body: Never { fatalError("UpdateView has no body") }
 
@@ -12,6 +13,9 @@ struct UpdateView: TUIView {
             header
             Text("Update - enter toolchain identifier (blank = in-use):")
             Text("> \(input)")
+            if let validation {
+                Text(validation).foregroundColor(.red)
+            }
         }.render()
     }
 }
