@@ -31,7 +31,7 @@ enum KeyboardHints {
         case .menu:
             return "1 list · 2 switch · 3 install · 4 uninstall · 5 update · 0/q exit"
         case .list:
-            return "j/k/arrow move · Enter/Space open · # jump · 1 refresh · b back · 0/q exit"
+            return "j/k/arrow move · Enter/Space open · # jump · / filter · 1 refresh · b back · Esc clear · 0/q exit"
         case .detail:
             return "s switch · b back · q exit"
         case .input:

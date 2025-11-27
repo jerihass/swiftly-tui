@@ -23,6 +23,9 @@ struct SwiftlyTUIApplication: TUIScene {
         var lastSession: OperationSessionViewModel?
         var focusedIndex: Int? = nil
         var navigationStack: [Screen] = []
+        var filter: String = ""
+        var isFiltering: Bool = false
+        var listScrollOffset: Int = 0
     }
 
     enum ActionType: String {
@@ -54,6 +57,11 @@ struct SwiftlyTUIApplication: TUIScene {
         case retryLast
         case cancelRecovery
         case exit
+        case startFilter
+        case filterChar(Character)
+        case filterBackspace
+        case clearFilter
+        case setListOffset(Int)
     }
 
     var model: Model = Model()
@@ -82,6 +90,9 @@ struct SwiftlyTUIApplication: TUIScene {
         model.navigationStack = []
         model.message = "Use numbers to choose an action."
         model.input = ""
+        model.filter = ""
+        model.isFiltering = false
+        model.listScrollOffset = 0
         let controller = self.controller
         Task.detached {
             if let pending = await controller.loadPendingSession() {
@@ -93,6 +104,7 @@ struct SwiftlyTUIApplication: TUIScene {
             case .list:
                 pushCurrentScreen()
                 model.screen = .progress("Loading toolchains...")
+                model.listScrollOffset = 0
                 let controller = self.controller
                 Task.detached {
                     let list = await controller.list()
@@ -175,6 +187,8 @@ struct SwiftlyTUIApplication: TUIScene {
             model.screen = .menu
             model.input = ""
             model.message = "Use numbers to choose an action."
+            model.filter = ""
+            model.isFiltering = false
         case .loadList:
             model.screen = .progress("Loading toolchains...")
             let controller = self.controller
@@ -185,24 +199,28 @@ struct SwiftlyTUIApplication: TUIScene {
         case .listLoaded(let list):
             model.toolchains = ListLayoutAdapter.sort(list)
             model.screen = .list
-            model.focusedIndex = list.isEmpty ? nil : 0
-            model.message = list.isEmpty ? "No installed toolchains. Choose Install to add one." : "Installed toolchains."
+            let filtered = filteredToolchains(model)
+            model.focusedIndex = filtered.isEmpty ? nil : 0
+            model.listScrollOffset = 0
+            model.message = filtered.isEmpty ? "No installed toolchains. Choose Install to add one." : "Installed toolchains."
         case .selectIndex(let idx):
-            guard model.toolchains.indices.contains(idx) else {
+            let filtered = filteredToolchains(model)
+            guard filtered.indices.contains(idx) else {
                 model.message = "Invalid selection."
                 return
             }
             pushCurrentScreen()
-            let selected = model.toolchains[idx]
+            let selected = filtered[idx]
             model.focusedIndex = idx
             model.screen = .detail(selected)
             model.message = "Selected \(selected.identifier). Press 's' to switch, 'b' to go back."
         case .moveFocus(let delta):
-            guard !model.toolchains.isEmpty else { return }
+            let filtered = filteredToolchains(model)
+            guard !filtered.isEmpty else { return }
             let current = model.focusedIndex ?? 0
-            let next = max(0, min(model.toolchains.count - 1, current + delta))
+            let next = max(0, min(filtered.count - 1, current + delta))
             model.focusedIndex = next
-            model.message = "Focused \(model.toolchains[next].identifier). Enter to view."
+            model.message = "Focused \(filtered[next].identifier). Enter to view."
         case .openFocused:
             guard model.screen == .list, let idx = model.focusedIndex else { return }
             self.update(action: .selectIndex(idx))
@@ -271,6 +289,34 @@ struct SwiftlyTUIApplication: TUIScene {
             model.navigationStack = []
         case .exit:
             break
+        case .startFilter:
+            model.isFiltering = true
+            if model.filter.isEmpty {
+                model.message = "Filter toolchains: type to narrow, Esc to clear."
+            }
+        case .filterChar(let ch):
+            guard model.isFiltering else { return }
+            model.filter.append(ch)
+            let filtered = filteredToolchains(model)
+            model.focusedIndex = filtered.isEmpty ? nil : 0
+            model.listScrollOffset = 0
+            model.message = filtered.isEmpty ? "No matches for '\(model.filter)'." : "Filter: \(model.filter)"
+        case .filterBackspace:
+            guard model.isFiltering else { return }
+            if !model.filter.isEmpty { model.filter.removeLast() }
+            let filtered = filteredToolchains(model)
+            model.focusedIndex = filtered.isEmpty ? nil : 0
+            model.listScrollOffset = 0
+            model.message = model.filter.isEmpty ? "Filter cleared; showing all." : "Filter: \(model.filter)"
+        case .clearFilter:
+            model.isFiltering = false
+            model.filter = ""
+            let filtered = filteredToolchains(model)
+            model.focusedIndex = filtered.isEmpty ? nil : 0
+            model.listScrollOffset = 0
+            model.message = filtered.isEmpty ? "No installed toolchains. Choose Install to add one." : "Filter cleared; showing all."
+        case .setListOffset(let offset):
+            model.listScrollOffset = max(0, offset)
         }
     }
 
@@ -296,6 +342,7 @@ struct SwiftlyTUIApplication: TUIScene {
         case .list:
             switch key {
             case .char(let ch) where ("0"..."9").contains(ch):
+                guard !model.isFiltering else { return .filterChar(ch) }
                 guard let idx = Int(String(ch)) else { return nil }
                 if idx == 0 { return .exit }
                 return .selectIndex(idx - 1)
@@ -309,6 +356,17 @@ struct SwiftlyTUIApplication: TUIScene {
                 return .openFocused
             case .char("b"), .char("B"):
                 return .back
+            case .char("/"):
+                return .startFilter
+            case .char(let ch):
+                if model.isFiltering { return .filterChar(ch) }
+                return nil
+            case .backspace:
+                if model.isFiltering { return .filterBackspace }
+                return nil
+            case .escape:
+                if model.isFiltering || !model.filter.isEmpty { return .clearFilter }
+                return nil
             case .char("q"), .char("Q"):
                 return .exit
             default:
@@ -468,7 +526,8 @@ private struct ScreenFrame: TUIView {
                 Text(message)
             }
         case .list:
-            let indexed = Array(model.toolchains.enumerated())
+            let filtered = filteredToolchains(model)
+            let indexed = Array(filtered.enumerated())
             let rowSpacing = ListLayoutAdapter.rowSpacing(for: indexed.count)
             if indexed.isEmpty {
                 let empty = ListLayoutAdapter.emptyState()
@@ -479,35 +538,54 @@ private struct ScreenFrame: TUIView {
             } else {
                 let focused = model.focusedIndex
                 let layout = ListLayoutAdapter.columnLayout()
-                return Table(
-                    indexed,
-                    id: \.element.identifier,
-                    columnSpacing: layout.columnSpacing,
-                    rowSpacing: rowSpacing,
-                    divider: .line(),
-                    rowStyle: { (row: ToolchainRow, _) in
-                        AccessibilityStyles.focusedRowStyle(hasFocus: focused == row.offset, theme: theme)
-                    }
-                ) {
-                    TableColumn("#", width: .fixed(3), alignment: .trailing) { (pair: ToolchainRow) in
-                        Text("\(pair.offset + 1)").foregroundColor(theme.mutedText)
-                    }
-                    TableColumn("ID", width: .flex(min: layout.idMinWidth)) { (pair: ToolchainRow) in
-                        let id = ListLayoutAdapter.truncateIdentifier(pair.element.identifier)
-                        Text(id)
-                            .foregroundColor(theme.primaryText)
-                            .bold()
-                    }
-                    TableColumn("Channel", width: .fitContent) { (pair: ToolchainRow) in
-                        Text(pair.element.channel.rawValue).foregroundColor(theme.mutedText)
-                    }
-                    TableColumn("Status", width: .fitContent) { (pair: ToolchainRow) in
-                        if pair.element.isActive {
-                            Text("active").foregroundColor(theme.success).bold()
-                        } else {
-                            Text("installed").foregroundColor(theme.primaryText)
+                let offsetBinding = Binding<Int>(
+                    get: { model.listScrollOffset },
+                    set: { SwifTea.dispatch(SwiftlyTUIApplication.Action.setListOffset($0)) }
+                )
+                let activeLine = Binding<Int>.constant(focused ?? 0)
+                let filterLine = Text("Filter: \(model.filter)")
+                    .foregroundColor(model.filter.isEmpty ? theme.mutedText : theme.accent)
+                return VStack(spacing: 1, alignment: .leading) {
+                    filterLine
+                    ScrollView(
+                        .vertical,
+                        viewport: LayoutSizing.listViewport,
+                        offset: offsetBinding,
+                        activeLine: activeLine,
+                        followActiveLine: Binding.constant(true),
+                        content: {
+                            Table(
+                                indexed,
+                                id: \.element.identifier,
+                                columnSpacing: layout.columnSpacing,
+                                rowSpacing: rowSpacing,
+                                divider: .line(),
+                                rowStyle: { (row: ToolchainRow, _) in
+                                    AccessibilityStyles.focusedRowStyle(hasFocus: focused == row.offset, theme: theme)
+                                }
+                            ) {
+                                TableColumn("#", width: .fixed(3), alignment: .trailing) { (pair: ToolchainRow) in
+                                    Text("\(pair.offset + 1)").foregroundColor(theme.mutedText)
+                                }
+                                TableColumn("ID", width: .flex(min: layout.idMinWidth)) { (pair: ToolchainRow) in
+                                    let id = ListLayoutAdapter.truncateIdentifier(pair.element.identifier)
+                                    Text(id)
+                                        .foregroundColor(theme.primaryText)
+                                        .bold()
+                                }
+                                TableColumn("Channel", width: .fitContent) { (pair: ToolchainRow) in
+                                    Text(pair.element.channel.rawValue).foregroundColor(theme.mutedText)
+                                }
+                                TableColumn("Status", width: .fitContent) { (pair: ToolchainRow) in
+                                    if pair.element.isActive {
+                                        Text("active").foregroundColor(theme.success).bold()
+                                    } else {
+                                        Text("installed").foregroundColor(theme.primaryText)
+                                    }
+                                }
+                            }
                         }
-                    }
+                    )
                 }
             }
         case .detail(let toolchain):
@@ -631,10 +709,22 @@ private extension OperationSessionViewModel {
 private enum LayoutSizing {
     static let contentWidth: Int = 72
     static let baseHeight: Int = 18
+    static let listViewport: Int = max(8, baseHeight - 6)
 
     static func minHeight(for screen: SwiftlyTUIApplication.Model.Screen) -> Int {
         // Keep a consistent baseline height across all screens; taller views can extend naturally.
         return baseHeight
+    }
+}
+
+/// Returns the filtered toolchains based on the current filter string.
+private func filteredToolchains(_ model: SwiftlyTUIApplication.Model) -> [ToolchainViewModel] {
+    guard !model.filter.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+        return model.toolchains
+    }
+    let query = model.filter.lowercased()
+    return model.toolchains.filter { tc in
+        tc.identifier.lowercased().contains(query) || tc.channel.rawValue.lowercased().contains(query)
     }
 }
 
@@ -662,7 +752,7 @@ private func hints(for screen: SwiftlyTUIApplication.Model.Screen) -> String {
     case .menu:
         return "1 list · 2 switch · 3 install · 4 uninstall · 5 update · 0/q exit"
     case .list:
-        return "j/k/arrow move · Enter/Space open · # jump · 1 refresh · b back · 0/q exit"
+        return "j/k/arrow move · Enter/Space open · # jump · / filter · 1 refresh · b back · Esc clear · 0/q exit"
     case .detail:
         return "s switch · b back · q exit"
     case .input:
