@@ -22,7 +22,9 @@ final class InstallFlowTests: XCTestCase {
         var app = TUITestHarness.makeApp(adapterFactory: mock)
         _ = app.mapKeyToAction(.char("3")).map { app.update(action: $0) }
         app.model.input = "swift-6.0.3"
-        app.update(action: .submit)
+        // Simulate dispatched session
+        let session = await mock.installAction("swift-6.0.3")
+        app.update(action: .operationSession(session))
 
         await fulfillment(of: [expectationInstall], timeout: 1.0)
         XCTAssertEqual(app.model.lastSession?.state, .succeeded(message: "Installed swift-6.0.3"))

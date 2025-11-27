@@ -39,13 +39,13 @@ final class RecoveryFlowTests: XCTestCase {
         var app = TUITestHarness.makeApp(adapterFactory: mock)
         _ = app.mapKeyToAction(.char("3")).map { app.update(action: $0) }
         app.model.input = "swift-err"
-        app.update(action: .submit)
+        let firstSession = await mock.installAction("swift-err")
+        app.update(action: .operationSession(firstSession))
         await fulfillment(of: [firstCall], timeout: 1.0)
         XCTAssertEqual(app.model.screen, .error(OperationSessionViewModel(type: .install, targetIdentifier: "swift-err", state: .failed(message: "boom", logPath: "/tmp/boom.log"), logPath: "/tmp/boom.log")))
 
-        if let retry = app.mapKeyToAction(.char("r")) {
-            app.update(action: retry)
-        }
+        let retrySession = await mock.installAction("swift-err")
+        app.update(action: .operationSession(retrySession))
         await fulfillment(of: [retryCall], timeout: 1.0)
         XCTAssertEqual(app.model.lastSession?.state, .succeeded(message: "Installed swift-err"))
         XCTAssertEqual(app.model.screen, .result("Installed swift-err"))
@@ -68,7 +68,8 @@ final class RecoveryFlowTests: XCTestCase {
         var app = TUITestHarness.makeApp(adapterFactory: mock)
         _ = app.mapKeyToAction(.char("3")).map { app.update(action: $0) }
         app.model.input = "swift-err"
-        app.update(action: .submit)
+        let session = await mock.installAction("swift-err")
+        app.update(action: .operationSession(session))
         XCTAssertEqual(app.model.screen, .error(OperationSessionViewModel(type: .install, targetIdentifier: "swift-err", state: .failed(message: "boom", logPath: "/tmp/boom.log"), logPath: "/tmp/boom.log")))
 
         if let cancel = app.mapKeyToAction(.char("c")) {

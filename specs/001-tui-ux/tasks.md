@@ -37,10 +37,10 @@
 
 ### Tests for User Story 1 (MANDATORY - add before implementation) ⚠️
 
-- [ ] T007 [P] [US1] Snapshot/layout tests for menu/list/detail/header-body-status structure in Tests/TUITests/LayoutConsistencyTests.swift
-- [ ] T008 [P] [US1] Keyboard hint visibility tests per screen in Tests/TUITests/HintVisibilityTests.swift
-- [ ] T009 [P] [US1] Focus persistence tests across back/forward navigation in Tests/TUITests/FocusPersistenceTests.swift
-- [ ] T009a [P] [US1] Main menu action coverage test (list/switch/install/uninstall/update labels & shortcuts) in Tests/TUITests/MenuActionsTests.swift
+- [X] T007 [P] [US1] Snapshot/layout tests for menu/list/detail/header-body-status structure in Tests/TUITests/LayoutConsistencyTests.swift
+- [X] T008 [P] [US1] Keyboard hint visibility tests per screen in Tests/TUITests/HintVisibilityTests.swift
+- [X] T009 [P] [US1] Focus persistence tests across back/forward navigation in Tests/TUITests/FocusPersistenceTests.swift
+- [X] T009a [P] [US1] Main menu action coverage test (list/switch/install/uninstall/update labels & shortcuts) in Tests/TUITests/MenuActionsTests.swift
 
 ### Implementation for User Story 1
 

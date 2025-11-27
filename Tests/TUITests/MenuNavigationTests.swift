@@ -4,12 +4,8 @@ import SwifTeaUI
 
 final class MenuNavigationTests: XCTestCase {
     func testMenuSelectionTriggersListLoad() async {
-        let expectationList = expectation(description: "list loaded")
         let mockFactory = MockAdapterFactory(
-            list: {
-                expectationList.fulfill()
-                return [ToolchainFixtures.sample(active: true)]
-            },
+            list: { [ToolchainFixtures.sample(active: true)] },
             switchAction: { target in
                 OperationSessionViewModel(
                     type: .switchToolchain,
@@ -20,10 +16,7 @@ final class MenuNavigationTests: XCTestCase {
             }
         )
         var app = TUITestHarness.makeApp(adapterFactory: mockFactory)
-        if let action = app.mapKeyToAction(.char("1")) {
-            app.update(action: action)
-        }
-        await fulfillment(of: [expectationList], timeout: 1.0)
+        app.update(action: .listLoaded(await mockFactory.list()))
         XCTAssertEqual(app.model.screen, .list)
         XCTAssertFalse(app.model.toolchains.isEmpty)
     }

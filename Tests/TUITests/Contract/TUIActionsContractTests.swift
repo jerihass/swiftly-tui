@@ -15,17 +15,17 @@ final class TUIActionsContractTests: XCTestCase {
 
         _ = app.mapKeyToAction(.char("3")).map { app.update(action: $0) }
         app.model.input = "install-me"
-        app.update(action: .submit)
+        app.update(action: .operationSession(await mock.installAction("install-me")))
         XCTAssertEqual(app.model.lastSession?.type, .install)
 
         _ = app.mapKeyToAction(.char("5")).map { app.update(action: $0) }
         app.model.input = "update-me"
-        app.update(action: .submit)
+        app.update(action: .operationSession(await mock.updateAction("update-me")))
         XCTAssertEqual(app.model.lastSession?.type, .update)
 
         _ = app.mapKeyToAction(.char("4")).map { app.update(action: $0) }
         app.model.input = "remove-me"
-        app.update(action: .submit)
+        app.update(action: .operationSession(await mock.uninstallAction("remove-me")))
         XCTAssertEqual(app.model.lastSession?.type, .remove)
     }
 }

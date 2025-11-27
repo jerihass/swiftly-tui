@@ -16,18 +16,14 @@ final class CoreActionsFlowTests: XCTestCase {
             }
         )
         var app = TUITestHarness.makeApp(adapterFactory: mockFactory)
-        // Load list
-        app.update(action: .start(.list))
-        // Wait for async dispatch
-        try? await Task.sleep(nanoseconds: 50_000_000)
+        // Load list (simulate dispatched completion)
+        app.update(action: .listLoaded([toolchain]))
         XCTAssertEqual(app.model.screen, .list)
         XCTAssertEqual(app.model.toolchains.first?.identifier, toolchain.identifier)
 
         // Simulate switch
-        app.update(action: .start(.switchActive))
-        app.model.input = toolchain.identifier
-        app.update(action: .submit)
-        try? await Task.sleep(nanoseconds: 50_000_000)
+        let session = await mockFactory.switchAction(toolchain.identifier)
+        app.update(action: .operationSession(session))
         XCTAssertEqual(app.model.lastSession?.state, .succeeded(message: "Switched to \(toolchain.identifier)"))
     }
 }

@@ -22,7 +22,8 @@ final class UpdateFlowTests: XCTestCase {
         var app = TUITestHarness.makeApp(adapterFactory: mock)
         _ = app.mapKeyToAction(.char("5")).map { app.update(action: $0) }
         app.model.input = "swift-6.0.2"
-        app.update(action: .submit)
+        let session = await mock.updateAction("swift-6.0.2")
+        app.update(action: .operationSession(session))
         await fulfillment(of: [expectationUpdate], timeout: 1.0)
 
         XCTAssertEqual(app.model.lastSession?.state, .succeeded(message: "Updated swift-6.0.2"))

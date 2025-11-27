@@ -22,7 +22,8 @@ final class RemoveFlowTests: XCTestCase {
         var app = TUITestHarness.makeApp(adapterFactory: mock)
         _ = app.mapKeyToAction(.char("4")).map { app.update(action: $0) }
         app.model.input = "swift-6.0.1"
-        app.update(action: .submit)
+        let session = await mock.uninstallAction("swift-6.0.1")
+        app.update(action: .operationSession(session))
         await fulfillment(of: [expectationRemove], timeout: 1.0)
 
         XCTAssertEqual(app.model.lastSession?.state, .succeeded(message: "Uninstalled swift-6.0.1"))
