@@ -569,37 +569,8 @@ private struct RootTUIView: TUIView {
 
     func render() -> String {
         OverlayHost(presenter: overlay) {
-            VStack(spacing: 1, alignment: .leading) {
-                ScreenFrame(model: model, theme: theme)
-                statusBar
-                Text("") // reserve a line for bottom toasts without overwriting status content
-            }
+            ScreenFrame(model: model, theme: theme)
         }.render()
-    }
-
-    private var statusBar: StatusBar {
-        StatusBar(
-            leading: [
-                StatusBar.Segment("Path: \(breadcrumb(for: model.screen))", color: theme.mutedText),
-                StatusBar.Segment(model.message, color: theme.primaryText)
-            ],
-            trailing: [
-                StatusBar.Segment(KeyboardHints.description(for: hintContext(for: model.screen)), color: theme.mutedText)
-            ]
-        )
-    }
-
-    private func hintContext(for screen: SwiftlyTUIApplication.Model.Screen) -> KeyboardHints.Context {
-        switch screen {
-        case .menu: return .menu
-        case .installList: return .installList
-        case .list: return .list
-        case .detail: return .detail
-        case .input: return .input
-        case .progress: return .progress
-        case .result: return .result
-        case .error: return .error
-        }
     }
 }
 
@@ -624,7 +595,13 @@ private struct ScreenFrame: TUIView {
                         .bold()
                     Text("----------------------")
                         .foregroundColor(theme.mutedText)
+                    Text(headerLabel(for: model.screen))
+                        .foregroundColor(theme.accent)
+                        .bold()
+                    Text(model.message)
+                        .foregroundColor(theme.primaryText)
                     bodyContent()
+                    statusBar()
                 }
             }
         ).render()
@@ -959,50 +936,53 @@ private func adjustedListOffset(focused: Int, total: Int, viewport: Int, current
     return min(maxOffset, max(0, offset))
 }
 
-private func breadcrumb(for screen: SwiftlyTUIApplication.Model.Screen) -> String {
-    switch screen {
-    case .menu:
-        return "Home"
-    case .installList:
-        return "Home > Install"
-    case .list:
-        return "Home > Toolchains"
-    case .detail(let toolchain):
-        return "Home > Toolchains > \(toolchain.identifier)"
-    case .input(let type):
-        return "Home > \(type.rawValue.capitalized)"
-    case .progress:
-        return "Home > Working"
-    case .result:
-        return "Home > Result"
-    case .error:
-        return "Home > Error"
-    }
-}
-
-private func hints(for screen: SwiftlyTUIApplication.Model.Screen) -> String {
-    switch screen {
-    case .menu:
-        return "1 list/switch · 2 install · 3 uninstall · 4 update · 0/q exit"
-    case .installList:
-        return "j/k/arrow move · Enter install · / filter · m manual · b back · Esc clear · 0/q exit"
-    case .list:
-        return "j/k/arrow move · Enter/Space open · # jump · / filter · s switch · 1 refresh · b back · Esc clear · 0/q exit"
-    case .detail:
-        return "s switch · b back · q exit"
-    case .input:
-        return "Enter submit · Esc cancel · q exit"
-    case .progress:
-        return "Working… q exit"
-    case .result:
-        return "1 refresh list · b back · 0/q exit"
-    case .error:
-        return "r retry · c cancel · b back · 0/q exit"
-    }
-}
-
 private extension SwiftlyTUIApplication {
     mutating func pushCurrentScreen() {
         model.navigationStack.append(model.screen)
+    }
+}
+
+// MARK: - Status rendering helpers inside frame
+private extension ScreenFrame {
+    func statusBar() -> any TUIView {
+        StatusBar(
+            leading: [],
+            trailing: [
+                StatusBar.Segment(trimmed(KeyboardHints.description(for: hintContext(for: model.screen)), to: 76), color: theme.mutedText)
+            ]
+        )
+    }
+
+    func hintContext(for screen: SwiftlyTUIApplication.Model.Screen) -> KeyboardHints.Context {
+        switch screen {
+        case .menu: return .menu
+        case .installList: return .installList
+        case .list: return .list
+        case .detail: return .detail
+        case .input: return .input
+        case .progress: return .progress
+        case .result: return .result
+        case .error: return .error
+        }
+    }
+
+    func headerLabel(for screen: SwiftlyTUIApplication.Model.Screen) -> String {
+        switch screen {
+        case .menu: return "Main menu"
+        case .list: return "Installed toolchains"
+        case .installList: return "Install toolchains"
+        case .detail: return "Toolchain details"
+        case .input(let type): return "\(type.rawValue) input"
+        case .progress: return "Working"
+        case .result: return "Result"
+        case .error: return "Action error"
+        }
+    }
+
+    /// Truncate text to a fixed width with a trailing ellipsis when needed.
+    func trimmed(_ text: String, to maxLength: Int) -> String {
+        guard text.count > maxLength, maxLength > 3 else { return text }
+        let endIndex = text.index(text.startIndex, offsetBy: maxLength - 3)
+        return text[text.startIndex..<endIndex] + "..."
     }
 }
