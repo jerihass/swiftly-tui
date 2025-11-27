@@ -7,6 +7,10 @@ final class HintVisibilityTests: XCTestCase {
         var app = TUITestHarness.makeApp()
         let cases: [(SwiftlyTUIApplication.Model.Screen, KeyboardHints.Context, () -> Void)] = [
             (.menu, .menu, { app.model.navigationStack = [] }),
+            (.installList, .installList, {
+                app.model.availableToolchains = [ToolchainFixtures.sample(active: false, id: "swift-6.0.3")]
+                app.model.focusedIndex = 0
+            }),
             (.list, .list, {
                 app.model.toolchains = [ToolchainFixtures.sample(active: true, id: "swift-6.0.2")]
             }),

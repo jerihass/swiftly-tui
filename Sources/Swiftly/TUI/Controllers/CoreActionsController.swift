@@ -14,6 +14,10 @@ struct CoreActionsController {
         await adapterFactory(ctx).listToolchains()
     }
 
+    func listAvailable() async -> AvailableToolchainsResult {
+        await adapterFactory(ctx).listAvailableToolchains()
+    }
+
     func switchToolchain(id: String) async -> OperationSessionViewModel {
         await adapterFactory(ctx).activateToolchain(id: id)
     }

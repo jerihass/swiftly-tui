@@ -5,6 +5,9 @@ import SwifTeaUI
 
 struct MockAdapterFactory: Sendable {
     var list: @Sendable () async -> [ToolchainViewModel]
+    var listAvailable: @Sendable () async -> AvailableToolchainsResult = {
+        AvailableToolchainsResult(toolchains: [], errorMessage: nil)
+    }
     var switchAction: @Sendable (String) async -> OperationSessionViewModel
     var installAction: @Sendable (String) async -> OperationSessionViewModel = { target in
         OperationSessionViewModel(type: .install, targetIdentifier: target, state: .succeeded(message: "Installed \(target)"), logPath: nil)
@@ -20,6 +23,7 @@ struct MockAdapterFactory: Sendable {
         CoreActionsAdapter(
             ctx: ctx,
             listOverride: list,
+            listAvailableOverride: listAvailable,
             switchOverride: switchAction,
             installOverride: installAction,
             uninstallOverride: uninstallAction,
@@ -43,6 +47,7 @@ enum TUITestHarness {
     static func makeApp() -> SwiftlyTUIApplication {
         let mock = MockAdapterFactory(
             list: { [] },
+            listAvailable: { AvailableToolchainsResult(toolchains: [], errorMessage: nil) },
             switchAction: { target in
                 OperationSessionViewModel(
                     type: .switchToolchain,

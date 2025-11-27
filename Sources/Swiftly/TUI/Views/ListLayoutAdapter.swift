@@ -22,7 +22,7 @@ enum ListLayoutAdapter {
     static func sort(_ toolchains: [ToolchainViewModel]) -> [ToolchainViewModel] {
         toolchains.sorted { lhs, rhs in
             if lhs.isActive == rhs.isActive {
-                return lhs.identifier < rhs.identifier
+                return lhs.identifier > rhs.identifier // newest-ish (desc) when active status ties
             } else {
                 return lhs.isActive && !rhs.isActive
             }
@@ -62,7 +62,7 @@ enum ListLayoutAdapter {
     static func emptyState() -> EmptyState {
         EmptyState(
             title: "No toolchains installed.",
-            guidance: "Use Install (3) to add one."
+            guidance: "Use Install (2) to add one."
         )
     }
 }

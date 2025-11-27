@@ -8,6 +8,7 @@ final class LayoutConsistencyTests: XCTestCase {
         let screens: [SwiftlyTUIApplication.Model.Screen] = [
             .menu,
             .list,
+            .installList,
             .detail(ToolchainFixtures.sample(active: true, id: "swift-6.0.2")),
             .input(.install),
             .progress("Working"),
@@ -22,6 +23,13 @@ final class LayoutConsistencyTests: XCTestCase {
                     ToolchainFixtures.sample(active: true, id: "swift-6.0.2"),
                     ToolchainFixtures.sample(active: false, id: "swift-6.0.1"),
                 ]
+            }
+            if case .installList = screen {
+                app.model.availableToolchains = [
+                    ToolchainFixtures.sample(active: false, id: "swift-6.0.3"),
+                    ToolchainFixtures.sample(active: false, id: "swift-6.0.2")
+                ]
+                app.model.focusedIndex = 0
             }
             let rendered = TUITestHarness.render(app: app)
             XCTAssertTrue(rendered.contains("swiftly TUI"), "Header should be present for \(screen)")

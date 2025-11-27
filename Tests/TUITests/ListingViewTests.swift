@@ -18,6 +18,6 @@ final class ListingViewTests: XCTestCase {
         let view = ToolchainListView(toolchains: [])
         let rendered = view.render()
         XCTAssertTrue(rendered.contains("No toolchains installed"), "Empty state should guide install flow")
-        XCTAssertTrue(rendered.contains("Install (3)"), "Empty state should point to install action")
+        XCTAssertTrue(rendered.contains("Install (2)"), "Empty state should point to install action")
     }
 }

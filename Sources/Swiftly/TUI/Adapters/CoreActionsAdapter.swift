@@ -2,10 +2,16 @@ import Foundation
 import SwiftlyCore
 import SystemPackage
 
+struct AvailableToolchainsResult {
+    let toolchains: [ToolchainViewModel]
+    let errorMessage: String?
+}
+
 /// Bridges SwiftlyCore operations for TUI flows.
 struct CoreActionsAdapter {
     let ctx: SwiftlyCoreContext
     var listOverride: (() async -> [ToolchainViewModel])?
+    var listAvailableOverride: (() async -> AvailableToolchainsResult)?
     var switchOverride: ((String) async -> OperationSessionViewModel)?
     var installOverride: ((String) async -> OperationSessionViewModel)?
     var uninstallOverride: ((String) async -> OperationSessionViewModel)?
@@ -37,6 +43,38 @@ struct CoreActionsAdapter {
             }
         } catch {
             return []
+        }
+    }
+
+    func listAvailableToolchains() async -> AvailableToolchainsResult {
+        if let listAvailableOverride {
+            return await listAvailableOverride()
+        }
+        do {
+            var config = try await Config.load(ctx)
+            let installed = Set(config.listInstalledToolchains(selector: nil))
+            let (inUse, _) = try await selectToolchain(ctx, config: &config)
+
+            let releases = try await ctx.httpClient.getReleaseToolchains(platform: config.platform)
+            let stableVersions = releases
+                .map { ToolchainVersion.stable($0) }
+                .filter { $0.isStableRelease() }
+                .sorted(by: >) // newest first
+            let toolchains = stableVersions
+                .map { version in
+                    ToolchainViewModel(
+                        identifier: version.identifier,
+                        version: version.identifier,
+                        channel: version.isSnapshot() ? .snapshot : .stable,
+                        location: nil,
+                        isActive: inUse == version,
+                        isInstalled: installed.contains(version),
+                        metadata: .init(installedAt: nil, checksumVerified: nil, sizeDescription: nil)
+                    )
+                }
+            return AvailableToolchainsResult(toolchains: toolchains, errorMessage: nil)
+        } catch {
+            return AvailableToolchainsResult(toolchains: [], errorMessage: "Unable to load available toolchains: \(error)")
         }
     }
 

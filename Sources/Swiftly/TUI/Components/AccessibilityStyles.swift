@@ -17,6 +17,7 @@ enum AccessibilityStyles {
 enum KeyboardHints {
     enum Context {
         case menu
+        case installList
         case list
         case detail
         case input
@@ -30,6 +31,8 @@ enum KeyboardHints {
         switch context {
         case .menu:
             return "1 list/switch · 2 install · 3 uninstall · 4 update · 0/q exit"
+        case .installList:
+            return "j/k/arrow move · Enter install · / filter · m manual · b back · Esc clear · 0/q exit"
         case .list:
             return "j/k/arrow move · Enter/Space open · # jump · / filter · s switch · 1 refresh · b back · Esc clear · 0/q exit"
         case .detail:
