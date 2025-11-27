@@ -30,7 +30,6 @@ struct SwiftlyTUIApplication: TUIScene {
 
     enum ActionType: String {
         case list = "List"
-        case switchActive = "Switch"
         case install = "Install"
         case uninstall = "Uninstall"
         case update = "Update"
@@ -62,6 +61,7 @@ struct SwiftlyTUIApplication: TUIScene {
         case filterBackspace
         case clearFilter
         case setListOffset(Int)
+        case switchFocused
     }
 
     var model: Model = Model()
@@ -110,10 +110,6 @@ struct SwiftlyTUIApplication: TUIScene {
                     let list = await controller.list()
                     SwifTea.dispatch(Action.listLoaded(list))
                 }
-            case .switchActive:
-                model.screen = .input(.switchActive)
-                model.input = ""
-                model.message = "Enter toolchain to switch to:"
             case .install, .uninstall, .update:
                 pushCurrentScreen()
                 model.screen = .input(type)
@@ -131,17 +127,6 @@ struct SwiftlyTUIApplication: TUIScene {
             case .input(let type):
                 let value = model.input.trimmingCharacters(in: .whitespacesAndNewlines)
                 switch type {
-                case .switchActive:
-                    guard !value.isEmpty else {
-                        model.message = "Input cannot be empty."
-                        return
-                    }
-                    model.screen = .progress("Switching to \(value)...")
-                    let controller = self.controller
-                    Task.detached {
-                        let session = await controller.switchToolchain(id: value)
-                        SwifTea.dispatch(Action.operationSession(session))
-                    }
                 case .install:
                     let target = value
                     if !target.isEmpty {
@@ -202,7 +187,9 @@ struct SwiftlyTUIApplication: TUIScene {
             let filtered = filteredToolchains(model)
             model.focusedIndex = filtered.isEmpty ? nil : 0
             model.listScrollOffset = 0
-            model.message = filtered.isEmpty ? "No installed toolchains. Choose Install to add one." : "Installed toolchains."
+            model.message = filtered.isEmpty
+                ? "No installed toolchains. Choose Install to add one."
+                : "Installed toolchains. Enter opens detail, s switches."
         case .selectIndex(let idx):
             let filtered = filteredToolchains(model)
             guard filtered.indices.contains(idx) else {
@@ -317,6 +304,18 @@ struct SwiftlyTUIApplication: TUIScene {
             model.message = filtered.isEmpty ? "No installed toolchains. Choose Install to add one." : "Filter cleared; showing all."
         case .setListOffset(let offset):
             model.listScrollOffset = max(0, offset)
+        case .switchFocused:
+            guard model.screen == .list,
+                  let idx = model.focusedIndex else { return }
+            let filtered = filteredToolchains(model)
+            guard filtered.indices.contains(idx) else { return }
+            let target = filtered[idx].identifier
+            model.screen = .progress("Switching to \(target)...")
+            let controller = self.controller
+            Task.detached {
+                let session = await controller.switchToolchain(id: target)
+                SwifTea.dispatch(Action.operationSession(session))
+            }
         }
     }
 
@@ -327,12 +326,10 @@ struct SwiftlyTUIApplication: TUIScene {
             case .char("1"):
                 return .start(.list)
             case .char("2"):
-                return .start(.switchActive)
-            case .char("3"):
                 return .start(.install)
-            case .char("4"):
+            case .char("3"):
                 return .start(.uninstall)
-            case .char("5"):
+            case .char("4"):
                 return .start(.update)
             case .char("0"), .char("q"), .char("Q"):
                 return .exit
@@ -354,6 +351,8 @@ struct SwiftlyTUIApplication: TUIScene {
                 return .moveFocus(1)
             case .enter, .char(" "):
                 return .openFocused
+            case .char("s"), .char("S"):
+                return .switchFocused
             case .char("b"), .char("B"):
                 return .back
             case .char("/"):
@@ -499,11 +498,10 @@ private struct ScreenFrame: TUIView {
         switch model.screen {
         case .menu:
             return VStack(spacing: 1, alignment: .leading) {
-                Text("1) List toolchains")
-                Text("2) Switch toolchain")
-                Text("3) Install toolchain")
-                Text("4) Uninstall toolchain")
-                Text("5) Update toolchain")
+                Text("1) List & switch toolchains")
+                Text("2) Install toolchain")
+                Text("3) Uninstall toolchain")
+                Text("4) Update toolchain")
                 Text("0) Exit")
             }
         case .progress(let message):
@@ -613,14 +611,6 @@ private struct ScreenFrame: TUIView {
                 return UpdateView(header: EmptyHeader(), input: model.input, validation: validationMessage(for: type))
             case .uninstall:
                 return RemoveView(header: EmptyHeader(), input: model.input, validation: validationMessage(for: type))
-            case .switchActive:
-                return VStack(spacing: 1, alignment: .leading) {
-                    Text("Switch - enter toolchain identifier:")
-                    Text(AccessibilityStyles.focusIndicator(for: model.input))
-                    if let validation = validationMessage(for: type) {
-                        Text(validation).foregroundColor(.red)
-                    }
-                }
             case .list, .exit:
                 return VStack(spacing: 1, alignment: .leading) { Text(AccessibilityStyles.focusIndicator(for: model.input)) }
             }
@@ -631,8 +621,7 @@ private struct ScreenFrame: TUIView {
         let defaults: [SwiftlyTUIApplication.ActionType: String] = [
             .install: "Enter toolchain identifier for install:",
             .update: "Enter toolchain identifier for update:",
-            .uninstall: "Enter toolchain identifier for uninstall:",
-            .switchActive: "Enter toolchain to switch to:"
+            .uninstall: "Enter toolchain identifier for uninstall:"
         ]
         guard let expected = defaults[type] else { return nil }
         let current = model.message
@@ -750,9 +739,9 @@ private func breadcrumb(for screen: SwiftlyTUIApplication.Model.Screen) -> Strin
 private func hints(for screen: SwiftlyTUIApplication.Model.Screen) -> String {
     switch screen {
     case .menu:
-        return "1 list · 2 switch · 3 install · 4 uninstall · 5 update · 0/q exit"
+        return "1 list/switch · 2 install · 3 uninstall · 4 update · 0/q exit"
     case .list:
-        return "j/k/arrow move · Enter/Space open · # jump · / filter · 1 refresh · b back · Esc clear · 0/q exit"
+        return "j/k/arrow move · Enter/Space open · # jump · / filter · s switch · 1 refresh · b back · Esc clear · 0/q exit"
     case .detail:
         return "s switch · b back · q exit"
     case .input:

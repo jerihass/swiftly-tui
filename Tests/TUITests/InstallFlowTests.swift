@@ -20,7 +20,7 @@ final class InstallFlowTests: XCTestCase {
         )
 
         var app = TUITestHarness.makeApp(adapterFactory: mock)
-        _ = app.mapKeyToAction(.char("3")).map { app.update(action: $0) }
+        _ = app.mapKeyToAction(.char("2")).map { app.update(action: $0) }
         app.model.input = "swift-6.0.3"
         // Simulate dispatched session
         let session = await mock.installAction("swift-6.0.3")
@@ -33,7 +33,7 @@ final class InstallFlowTests: XCTestCase {
 
     func testRemoveRequiresIdentifier() {
         var app = TUITestHarness.makeApp()
-        _ = app.mapKeyToAction(.char("4")).map { app.update(action: $0) }
+        _ = app.mapKeyToAction(.char("3")).map { app.update(action: $0) }
         app.model.input = "   "
         app.update(action: .submit)
         XCTAssertEqual(app.model.message, "Input cannot be empty.")
@@ -42,7 +42,7 @@ final class InstallFlowTests: XCTestCase {
 
     func testInstallRejectsInvalidIdentifier() {
         var app = TUITestHarness.makeApp()
-        _ = app.mapKeyToAction(.char("3")).map { app.update(action: $0) }
+        _ = app.mapKeyToAction(.char("2")).map { app.update(action: $0) }
         app.model.input = "???"
         app.update(action: .submit)
         XCTAssertTrue(app.model.message.contains("Invalid identifier"))

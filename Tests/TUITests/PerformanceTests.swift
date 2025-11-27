@@ -16,9 +16,9 @@ final class PerformanceTests: XCTestCase {
         )
         var app = TUITestHarness.makeApp(adapterFactory: mockFactory)
         let start = Date()
-        app.update(action: .start(.switchActive))
-        app.model.input = "swift-6.0.1"
-        app.update(action: .submit)
+        app.update(action: .start(.list))
+        app.update(action: .listLoaded([ToolchainFixtures.sample(active: false, id: "swift-6.0.1")]))
+        app.update(action: .switchFocused)
         let elapsed = Date().timeIntervalSince(start)
         XCTAssertLessThan(elapsed, 60, "Navigation to switch should take under 60 seconds")
     }

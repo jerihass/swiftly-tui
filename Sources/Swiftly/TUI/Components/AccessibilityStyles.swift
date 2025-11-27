@@ -29,9 +29,9 @@ enum KeyboardHints {
     static func description(for context: Context) -> String {
         switch context {
         case .menu:
-            return "1 list · 2 switch · 3 install · 4 uninstall · 5 update · 0/q exit"
+            return "1 list/switch · 2 install · 3 uninstall · 4 update · 0/q exit"
         case .list:
-            return "j/k/arrow move · Enter/Space open · # jump · / filter · 1 refresh · b back · Esc clear · 0/q exit"
+            return "j/k/arrow move · Enter/Space open · # jump · / filter · s switch · 1 refresh · b back · Esc clear · 0/q exit"
         case .detail:
             return "s switch · b back · q exit"
         case .input:
