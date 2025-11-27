@@ -54,4 +54,28 @@ enum TUITestHarness {
         )
         return makeApp(adapterFactory: mock)
     }
+
+    /// Render any view in a headless 80-column context to keep layout tests predictable.
+    static func render<V: TUIView>(_ view: V, width: Int = 80) -> String {
+        let rendered = view.render()
+        return enforceWidth(rendered, width: width)
+    }
+
+    /// Render the current app model for snapshot/layout checks.
+    static func render(app: SwiftlyTUIApplication, width: Int = 80) -> String {
+        render(app.view(model: app.model), width: width)
+    }
+
+    private static func enforceWidth(_ text: String, width: Int) -> String {
+        text
+            .split(separator: "\n", omittingEmptySubsequences: false)
+            .map { line in
+                if line.count > width {
+                    let trimmed = line.prefix(width - 1)
+                    return "\(trimmed)…"
+                }
+                return String(line)
+            }
+            .joined(separator: "\n")
+    }
 }

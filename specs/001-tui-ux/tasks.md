@@ -11,9 +11,9 @@
 
 **Purpose**: Prepare UX-focused scaffolding and docs
 
-- [ ] T001 Verify SwifTeaUI dependency (branch `main`) and test target ready for UX snapshots in Package.swift
-- [ ] T002 Add/confirm UX guideline doc location placeholder in specs/001-tui-ux/quickstart.md and AGENTS.md references
-- [ ] T003 [P] Ensure TUITests harness supports 80-col rendering and headless scenes in Tests/TUITests/Support/
+- [X] T001 Verify SwifTeaUI dependency (branch `main`) and test target ready for UX snapshots in Package.swift
+- [X] T002 Add/confirm UX guideline doc location placeholder in specs/001-tui-ux/quickstart.md and AGENTS.md references
+- [X] T003 [P] Ensure TUITests harness supports 80-col rendering and headless scenes in Tests/TUITests/Support/
 
 ---
 
@@ -21,9 +21,9 @@
 
 **Purpose**: Shared UX primitives used by all stories
 
-- [ ] T004 [P] Add shared keyboard hint sets and focus style helpers in Sources/Swiftly/TUI/Components/AccessibilityStyles.swift
-- [ ] T005 [P] Add density rules (row spacing/columns) and empty-state helpers in Sources/Swiftly/TUI/Views/ListLayoutAdapter.swift
-- [ ] T006 Add UX guide markdown skeleton in specs/001-tui-ux/research.md or specs/001-tui-ux/ux-guide.md with placeholders for patterns
+- [X] T004 [P] Add shared keyboard hint sets and focus style helpers in Sources/Swiftly/TUI/Components/AccessibilityStyles.swift
+- [X] T005 [P] Add density rules (row spacing/columns) and empty-state helpers in Sources/Swiftly/TUI/Views/ListLayoutAdapter.swift
+- [X] T006 Add UX guide markdown skeleton in specs/001-tui-ux/research.md or specs/001-tui-ux/ux-guide.md with placeholders for patterns
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 

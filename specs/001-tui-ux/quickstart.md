@@ -19,3 +19,4 @@
 
 ## Notes
 - Document any missing SwifTeaUI components encountered; do not implement custom hacks—record the gap for upstream.
+- UX guide: see `specs/001-tui-ux/ux-guide.md` for layout/hints/focus rules to validate changes.

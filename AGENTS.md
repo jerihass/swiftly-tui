@@ -32,4 +32,5 @@ Swift 6: Follow standard conventions
 - 001-tui-core-interaction: Added Swift 6 + swift-argument-parser, AsyncHTTPClient stack (existing), SwifTeaUI (branch main) for TUI rendering
 
 <!-- MANUAL ADDITIONS START -->
+- TUI UX: Follow `specs/001-tui-ux/ux-guide.md` for layout, keyboard hints, focus, and density rules before shipping changes.
 <!-- MANUAL ADDITIONS END -->

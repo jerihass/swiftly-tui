@@ -9,7 +9,7 @@ struct ToolchainListView: TUIView {
 
     func render() -> String {
         guard !toolchains.isEmpty else {
-            return "No toolchains found. Choose Install to add one."
+            return ListLayoutAdapter.emptyState().combined
         }
         let lines = toolchains.map { summary in
             let activeMark = summary.isActive ? "*" : " "

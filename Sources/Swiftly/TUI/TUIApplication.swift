@@ -396,7 +396,9 @@ private struct RootTUIView: TUIView {
                     header
                     divider
                     if indexed.isEmpty {
-                        Text(ListLayoutAdapter.emptyStateMessage())
+                        let empty = ListLayoutAdapter.emptyState()
+                        Text(empty.title)
+                        Text(empty.guidance).foregroundColor(.brightBlack)
                     } else {
                         let focused = model.focusedIndex
                         Table(
