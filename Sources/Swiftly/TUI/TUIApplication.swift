@@ -361,139 +361,154 @@ private struct RootTUIView: TUIView {
     var body: Never { fatalError("RootTUIView has no body") }
 
     func render() -> String {
-        let header = Text("swiftly TUI").bold()
-        let divider = Text("----------------------")
+        VStack(spacing: 1, alignment: .leading) {
+            ScreenFrame(model: model)
+            statusBar
+        }.render()
+    }
 
-        let content: any TUIView = {
-            switch model.screen {
-            case .menu:
-                return VStack(spacing: 1, alignment: .leading) {
-                    header
-                    divider
-                    Text("1) List toolchains")
-                    Text("2) Switch toolchain")
-                    Text("3) Install toolchain")
-                    Text("4) Uninstall toolchain")
-                    Text("5) Update toolchain")
-                    Text("0) Exit")
-                }
-            case .progress(let message):
-                return VStack(spacing: 1, alignment: .leading) {
-                    header
-                    divider
-                    Text(message)
-                }
-            case .result(let message):
-                return VStack(spacing: 1, alignment: .leading) {
-                    header
-                    divider
-                    Text(message)
-                }
-            case .list:
-                let indexed = Array(model.toolchains.enumerated())
-                let rowSpacing = ListLayoutAdapter.rowSpacing(for: indexed.count)
-                return VStack(spacing: 1, alignment: .leading) {
-                    header
-                    divider
-                    if indexed.isEmpty {
-                        let empty = ListLayoutAdapter.emptyState()
-                        Text(empty.title)
-                        Text(empty.guidance).foregroundColor(.brightBlack)
-                    } else {
-                        let focused = model.focusedIndex
-                        Table(
-                            indexed,
-                            id: \.element.identifier,
-                            columnSpacing: 2,
-                            rowSpacing: rowSpacing,
-                            divider: .line(),
-                            rowStyle: { (row: ToolchainRow, _) in
-                                AccessibilityStyles.focusedRowStyle(hasFocus: focused == row.offset)
-                            }
-                        ) {
-                            TableColumn("#", width: .fixed(3), alignment: .trailing) { (pair: ToolchainRow) in
-                                Text("\(pair.offset + 1)").foregroundColor(.brightBlack)
-                            }
-                            TableColumn("ID", width: .flex(min: 10)) { (pair: ToolchainRow) in
-                                Text(pair.element.identifier).bold()
-                            }
-                            TableColumn("Channel", width: .fitContent) { (pair: ToolchainRow) in
-                                Text(pair.element.channel.rawValue).foregroundColor(.brightBlack)
-                            }
-                            TableColumn("Status", width: .fitContent) { (pair: ToolchainRow) in
-                                if pair.element.isActive {
-                                    Text("active").foregroundColor(.green).bold()
-                                } else {
-                                    Text("installed")
-                                }
-                            }
-                        }
-                    }
-                }
-            case .detail(let toolchain):
-                return VStack(spacing: 1, alignment: .leading) {
-                    header
-                    divider
-                    Text("Toolchain: \(toolchain.identifier)").bold()
-                    Text("Channel: \(toolchain.channel.rawValue)")
-                    Text("Status: \(toolchain.isActive ? "active" : "installed")")
-                    if let location = toolchain.location { Text("Location: \(location)") }
-                    if let meta = toolchain.metadata?.sizeDescription { Text("Size: \(meta)") }
-                    if let last = model.lastSession {
-                        Text("Last result: \(last.stateDescription)")
-                    }
-                }
-            case .error(let session):
-                return VStack(spacing: 1, alignment: .leading) {
-                    header
-                    divider
-                    ErrorView(
-                        message: session.state.humanErrorMessage,
-                        suggestion: "Retry (r) or Cancel (c)",
-                        logPath: session.logPath
-                    )
-                }
-            case .input(let type):
-                let view: any TUIView = {
-                    switch type {
-                    case .install:
-                        return InstallView(header: VStack { header; divider }, input: model.input)
-                    case .update:
-                        return UpdateView(header: VStack { header; divider }, input: model.input)
-                    case .uninstall:
-                        return RemoveView(header: VStack { header; divider }, input: model.input)
-                    case .switchActive:
-                        return VStack(spacing: 1, alignment: .leading) {
-                            header
-                            divider
-                            Text("Switch - enter toolchain identifier:")
-                            Text("> \(model.input)")
-                        }
-                    case .list, .exit:
-                        return VStack(spacing: 1, alignment: .leading) { header; divider; Text("> \(model.input)") }
-                    }
-                }()
-                return VStack(spacing: 1, alignment: .leading) {
-                    view
-                }
-            }
-        }()
-
-        let status = StatusBar(
+    private var statusBar: StatusBar {
+        StatusBar(
             leading: [
                 StatusBar.Segment("Path: \(breadcrumb(for: model.screen))", color: .brightBlack),
                 StatusBar.Segment(model.message, color: .white)
             ],
             trailing: [
-                StatusBar.Segment(hints(for: model.screen), color: .brightBlack)
+                StatusBar.Segment(KeyboardHints.description(for: hintContext(for: model.screen)), color: .brightBlack)
             ]
         )
+    }
 
-        return VStack(spacing: 1, alignment: .leading) {
-            content
-            status
+    private func hintContext(for screen: SwiftlyTUIApplication.Model.Screen) -> KeyboardHints.Context {
+        switch screen {
+        case .menu: return .menu
+        case .list: return .list
+        case .detail: return .detail
+        case .input: return .input
+        case .progress: return .progress
+        case .result: return .result
+        case .error: return .error
+        }
+    }
+}
+
+/// Shared frame for all screens: header + body wrapped in a simple layout.
+private struct ScreenFrame: TUIView {
+    typealias Body = Never
+    let model: SwiftlyTUIApplication.Model
+
+    var body: Never { fatalError("ScreenFrame has no body") }
+
+    func render() -> String {
+        VStack(spacing: 1, alignment: .leading) {
+            Text("swiftly TUI").bold()
+            Text("----------------------")
+            bodyContent()
         }.render()
     }
+
+    private func bodyContent() -> any TUIView {
+        switch model.screen {
+        case .menu:
+            return VStack(spacing: 1, alignment: .leading) {
+                Text("1) List toolchains")
+                Text("2) Switch toolchain")
+                Text("3) Install toolchain")
+                Text("4) Uninstall toolchain")
+                Text("5) Update toolchain")
+                Text("0) Exit")
+            }
+        case .progress(let message):
+            return VStack(spacing: 1, alignment: .leading) {
+                Text(message)
+            }
+        case .result(let message):
+            return VStack(spacing: 1, alignment: .leading) {
+                Text(message)
+            }
+        case .list:
+            let indexed = Array(model.toolchains.enumerated())
+            let rowSpacing = ListLayoutAdapter.rowSpacing(for: indexed.count)
+            if indexed.isEmpty {
+                let empty = ListLayoutAdapter.emptyState()
+                return VStack(spacing: 1, alignment: .leading) {
+                    Text(empty.title)
+                    Text(empty.guidance).foregroundColor(.brightBlack)
+                }
+            } else {
+                let focused = model.focusedIndex
+                let layout = ListLayoutAdapter.columnLayout()
+                return Table(
+                    indexed,
+                    id: \.element.identifier,
+                    columnSpacing: layout.columnSpacing,
+                    rowSpacing: rowSpacing,
+                    divider: .line(),
+                    rowStyle: { (row: ToolchainRow, _) in
+                        AccessibilityStyles.focusedRowStyle(hasFocus: focused == row.offset)
+                    }
+                ) {
+                    TableColumn("#", width: .fixed(3), alignment: .trailing) { (pair: ToolchainRow) in
+                        Text("\(pair.offset + 1)").foregroundColor(.brightBlack)
+                    }
+                    TableColumn("ID", width: .flex(min: layout.idMinWidth)) { (pair: ToolchainRow) in
+                        let id = ListLayoutAdapter.truncateIdentifier(pair.element.identifier)
+                        Text(id).bold()
+                    }
+                    TableColumn("Channel", width: .fitContent) { (pair: ToolchainRow) in
+                        Text(pair.element.channel.rawValue).foregroundColor(.brightBlack)
+                    }
+                    TableColumn("Status", width: .fitContent) { (pair: ToolchainRow) in
+                        if pair.element.isActive {
+                            Text("active").foregroundColor(.green).bold()
+                        } else {
+                            Text("installed")
+                        }
+                    }
+                }
+            }
+        case .detail(let toolchain):
+            return VStack(spacing: 1, alignment: .leading) {
+                Text("Toolchain: \(toolchain.identifier)").bold()
+                Text("Channel: \(toolchain.channel.rawValue)")
+                Text("Status: \(toolchain.isActive ? "active" : "installed")")
+                if let location = toolchain.location { Text("Location: \(location)") }
+                if let meta = toolchain.metadata?.sizeDescription { Text("Size: \(meta)") }
+                if let last = model.lastSession {
+                    Text("Last result: \(last.stateDescription)")
+                }
+            }
+        case .error(let session):
+            return ErrorView(
+                message: session.state.humanErrorMessage,
+                suggestion: "Retry (r) or Cancel (c)",
+                logPath: session.logPath
+            )
+        case .input(let type):
+            switch type {
+            case .install:
+                return InstallView(header: EmptyHeader(), input: model.input)
+            case .update:
+                return UpdateView(header: EmptyHeader(), input: model.input)
+            case .uninstall:
+                return RemoveView(header: EmptyHeader(), input: model.input)
+            case .switchActive:
+                return VStack(spacing: 1, alignment: .leading) {
+                    Text("Switch - enter toolchain identifier:")
+                    Text(AccessibilityStyles.focusIndicator(for: model.input))
+                }
+            case .list, .exit:
+                return VStack(spacing: 1, alignment: .leading) { Text(AccessibilityStyles.focusIndicator(for: model.input)) }
+            }
+        }
+    }
+}
+
+/// Placeholder to keep Install/Update/Remove headers consistent without duplicating the frame layout.
+private struct EmptyHeader: TUIView {
+    typealias Body = Never
+    var body: Never { fatalError("EmptyHeader has no body") }
+    func render() -> String { "" }
 }
 
 internal extension OperationSessionViewModel.State {
