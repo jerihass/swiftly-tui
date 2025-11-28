@@ -100,17 +100,14 @@ extension SwiftlyTUIApplication {
         model.isFiltering = false
         model.listScrollOffset = 0
         model.focusedIndex = nil
-            model.availableToolchains = []
-            let controller = self.controller
-            Task.detached {
-                if let pending = await controller.loadPendingSession() {
-                    SwifTea.dispatch(Action.operationSession(pending))
-                }
+        model.availableToolchains = []
+        let controller = self.controller
+        Task.detached {
+            if let pending = await controller.loadPendingSession() {
+                SwifTea.dispatch(Action.operationSession(pending))
             }
-            Task.detached {
-                let list = await controller.list()
-                SwifTea.dispatch(Action.statsLoaded(list))
-            }
+        }
+            queueStatsRefresh()
         case .start(let type):
             switch type {
             case .list:
@@ -278,6 +275,7 @@ extension SwiftlyTUIApplication {
             } else {
                 model.screen = .menu
                 model.message = "Use numbers to choose an action."
+                queueStatsRefresh()
             }
         case .confirmSwitchFromDetail:
             guard case .detail(let selected) = model.screen else { return }
@@ -331,6 +329,7 @@ extension SwiftlyTUIApplication {
             case .pending, .running:
                 model.screen = .progress("Running...")
             }
+            queueStatsRefresh()
         case .retryLast:
             guard let session = model.lastSession else { return }
             let target = session.targetIdentifier ?? ""
@@ -420,6 +419,14 @@ extension SwiftlyTUIApplication {
                 let session = await controller.install(id: target)
                 SwifTea.dispatch(Action.operationSession(session))
             }
+        }
+    }
+
+    private func queueStatsRefresh() {
+        let controller = self.controller
+        Task.detached {
+            let list = await controller.list()
+            SwifTea.dispatch(Action.statsLoaded(list))
         }
     }
 
