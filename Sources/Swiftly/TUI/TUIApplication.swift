@@ -75,6 +75,7 @@ struct SwiftlyTUIApplication: TUIScene {
     var recovery: OperationRecoveryController
     var overlayPresenter: OverlayPresenter = OverlayPresenter()
     private let theme: SwifTeaTheme = .lumenGlass
+    private var spinnerRefreshTask: Task<Void, Never>? = nil
 
     init(ctx: SwiftlyCoreContext, adapterFactory: @escaping @Sendable (SwiftlyCoreContext) -> CoreActionsAdapter = { CoreActionsAdapter(ctx: $0) }) {
         self.ctx = ctx
@@ -90,6 +91,7 @@ struct SwiftlyTUIApplication: TUIScene {
 
 extension SwiftlyTUIApplication {
     mutating func update(action: Action) {
+        defer { self.updateSpinnerLoopIfNeeded() }
         switch action {
         case .showMenu:
         model.screen = .menu
@@ -428,6 +430,30 @@ extension SwiftlyTUIApplication {
             let list = await controller.list()
             SwifTea.dispatch(Action.statsLoaded(list))
         }
+    }
+
+    private mutating func updateSpinnerLoopIfNeeded() {
+        switch model.screen {
+        case .progress:
+            startSpinnerLoop()
+        default:
+            stopSpinnerLoop()
+        }
+    }
+
+    private mutating func startSpinnerLoop() {
+        if spinnerRefreshTask != nil { return }
+        spinnerRefreshTask = Task.detached(priority: .userInitiated) {
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 50_000_000)
+                SwifTea.requestRender()
+            }
+        }
+    }
+
+    private mutating func stopSpinnerLoop() {
+        spinnerRefreshTask?.cancel()
+        spinnerRefreshTask = nil
     }
 
 }

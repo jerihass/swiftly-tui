@@ -64,7 +64,7 @@ private struct ScreenFrame: TUIView {
             let running = model.lastSession
             return VStack(spacing: 1, alignment: .leading) {
                 if let state = running?.state, case .running(let percent, let detail) = state {
-                    Spinner(label: detail ?? message, style: .dots, color: theme.accent, isBold: true)
+                    Spinner(label: detail ?? message, style: .braille, color: theme.accent, isBold: true)
                     ProgressMeter(
                         value: Double(percent) / 100.0,
                         width: 24,
@@ -72,7 +72,7 @@ private struct ScreenFrame: TUIView {
                         showsPercentage: true
                     )
                 } else {
-                    Spinner(label: message, style: .dots, color: theme.accent, isBold: true)
+                    Spinner(label: message, style: .braille, color: theme.accent, isBold: true)
                 }
             }
         case .result(let message):
