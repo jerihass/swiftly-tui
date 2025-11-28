@@ -19,6 +19,12 @@ import Testing
         try self.runTest(.stable(major: 5, minor: nil, patch: nil), ["5"])
     }
 
+    @Test func parseSwiftPrefixedRelease() throws {
+        try self.runTest(.stable(major: 5, minor: 5, patch: nil), ["swift-5.5-RELEASE"])
+        try self.runTest(.stable(major: 5, minor: 5, patch: 1), ["swift-5.5.1-RELEASE"])
+        try self.runTest(.stable(major: 5, minor: nil, patch: nil), ["swift-5-RELEASE"])
+    }
+
     @Test func parseMainSnapshot() throws {
         let parses = [
             "main-snapshot",

@@ -397,7 +397,7 @@ private let parsers: [any ToolchainSelectorParser] = [
 ///    - a.b
 struct StableReleaseParser: ToolchainSelectorParser {
     static func regex() -> Regex<(Substring, Substring, Substring?, Substring?)> {
-        try! Regex("^(\\d+)(?:\\.(\\d+))?(?:\\.(\\d+))?$")
+        try! Regex("^(?:swift-)?(\\d+)(?:\\.(\\d+))?(?:\\.(\\d+))?(?:-RELEASE)?$")
     }
 
     func parse(_ input: String) throws -> ToolchainSelector? {
