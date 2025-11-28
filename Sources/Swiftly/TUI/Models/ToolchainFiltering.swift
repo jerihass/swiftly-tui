@@ -1,8 +1,15 @@
 import Foundation
+import SwifTeaUI
 
 enum LayoutSizing {
-    static let frameWidth: Int = 120
-    static let contentWidth: Int = frameWidth - 4
+    private static let preferredContentWidth: Int = 80
+    private static let minContentWidth: Int = 60
+    static var contentWidth: Int {
+        let columns = TerminalDimensions.current.columns - 4
+        guard columns > 0 else { return preferredContentWidth }
+        return max(minContentWidth, min(preferredContentWidth, columns))
+    }
+    static var frameWidth: Int { contentWidth + 4 }
     static let baseHeight: Int = 18
     // Account for filter line + table header/divider; the remainder is usable data rows.
     static let listViewport: Int = max(8, baseHeight - 7) // 18 -> ~9 data rows
