@@ -19,15 +19,18 @@ struct OperationRecoveryController {
         )
     }
 
-    func retryLastOperation(_ session: OperationSessionViewModel) async -> OperationSessionViewModel {
+    func retryLastOperation(
+        _ session: OperationSessionViewModel,
+        onProgressLog: @Sendable @escaping (String) -> Void = { _ in }
+    ) async -> OperationSessionViewModel {
         switch session.type {
         case .install:
-            return await controller.install(id: session.targetIdentifier ?? "")
+            return await controller.install(id: session.targetIdentifier ?? "", onProgressLog: onProgressLog)
         case .update:
-            return await controller.update(id: session.targetIdentifier ?? "")
+            return await controller.update(id: session.targetIdentifier ?? "", onProgressLog: onProgressLog)
         case .remove:
             guard let target = session.targetIdentifier else {
-                return cancelledFallback(session)
+            return cancelledFallback(session)
             }
             return await controller.remove(id: target)
         case .switchToolchain:

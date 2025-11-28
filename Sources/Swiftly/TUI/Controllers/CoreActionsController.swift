@@ -22,12 +22,12 @@ struct CoreActionsController {
         await adapterFactory(ctx).activateToolchain(id: id)
     }
 
-    func install(id: String) async -> OperationSessionViewModel {
-        await adapterFactory(ctx).installToolchain(id: id)
+    func install(id: String, onProgressLog: @Sendable (String) -> Void = { _ in }) async -> OperationSessionViewModel {
+        await adapterFactory(ctx).installToolchain(id: id, onProgressLog: onProgressLog)
     }
 
-    func update(id: String) async -> OperationSessionViewModel {
-        await adapterFactory(ctx).updateToolchain(id: id)
+    func update(id: String, onProgressLog: @Sendable (String) -> Void = { _ in }) async -> OperationSessionViewModel {
+        await adapterFactory(ctx).updateToolchain(id: id, onProgressLog: onProgressLog)
     }
 
     func remove(id: String) async -> OperationSessionViewModel {

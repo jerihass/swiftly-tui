@@ -25,9 +25,9 @@ struct MockAdapterFactory: Sendable {
             listOverride: list,
             listAvailableOverride: listAvailable,
             switchOverride: switchAction,
-            installOverride: installAction,
+            installOverride: { target, _ in await installAction(target) },
             uninstallOverride: uninstallAction,
-            updateOverride: updateAction
+            updateOverride: { target, _ in await updateAction(target) }
         )
     }
 }

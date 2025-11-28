@@ -61,18 +61,26 @@ private struct ScreenFrame: TUIView {
                 menuStatsView()
             }
         case .progress(let message):
-            let running = model.lastSession
+            let runningState = model.lastSession?.state
+            let meterWidth = max(16, min(48, LayoutSizing.contentWidth - 12))
             return VStack(spacing: 1, alignment: .leading) {
-                if let state = running?.state, case .running(let percent, let detail) = state {
-                    Spinner(label: detail ?? message, style: .braille, color: theme.accent, isBold: true)
+                Spinner(label: message, style: .braille, color: theme.accent, isBold: true)
+                if let snapshot = model.progressSnapshot {
                     ProgressMeter(
-                        value: Double(percent) / 100.0,
-                        width: 24,
+                        value: snapshot.percent,
+                        width: meterWidth,
                         style: .tinted(theme.accent),
                         showsPercentage: true
                     )
-                } else {
-                    Spinner(label: message, style: .braille, color: theme.accent, isBold: true)
+                    Text(snapshot.message ?? message)
+                        .foregroundColor(theme.mutedText)
+                } else if let state = runningState, case .running(let percent, _) = state {
+                    ProgressMeter(
+                        value: Double(percent) / 100.0,
+                        width: meterWidth,
+                        style: .tinted(theme.accent),
+                        showsPercentage: true
+                    )
                 }
             }
         case .result(let message):
@@ -263,11 +271,13 @@ private struct ScreenFrame: TUIView {
 
     // MARK: - Status rendering helpers inside frame
     private func statusBar() -> any TUIView {
-        let hintMaxLength = max(20, LayoutSizing.contentWidth - 24)
+        let width = LayoutSizing.contentWidth
+        let hintMaxLength = max(20, width - 24)
         return StatusBar(
+            width: width,
             leading: [
-                //StatusBar.Segment("Path: \(statusPath(for: model.screen))", color: theme.primaryText),
-                //StatusBar.Segment(statusExitHint(), color: theme.mutedText)
+                StatusBar.Segment("Path: \(statusPath(for: model.screen))", color: theme.primaryText),
+                StatusBar.Segment(statusExitHint(), color: theme.mutedText)
             ],
             trailing: [
                 StatusBar.Segment(trimmed(KeyboardHints.description(for: hintContext(for: model.screen)), to: hintMaxLength), color: theme.mutedText)

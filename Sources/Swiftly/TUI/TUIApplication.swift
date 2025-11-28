@@ -3,6 +3,72 @@ import SwiftlyCore
 import SwifTeaUI
 
 struct SwiftlyTUIApplication: TUIScene {
+    struct ProgressSnapshot: Equatable {
+        let percent: Double
+        let message: String?
+    }
+
+    private mutating func updateProgressMonitorIfNeeded() {
+        switch model.screen {
+        case .progress:
+            guard let path = model.progressLogPath, !path.isEmpty else {
+                stopProgressMonitor()
+                return
+            }
+            if progressMonitorPath != path {
+                stopProgressMonitor()
+                startProgressMonitor(for: path)
+            }
+        default:
+            stopProgressMonitor()
+        }
+    }
+
+    private mutating func startProgressMonitor(for path: String) {
+        if progressMonitorTask != nil { return }
+        progressMonitorPath = path
+        progressMonitorTask = Task.detached(priority: .userInitiated) {
+            while !Task.isCancelled {
+                if let snapshot = Self.readProgressSnapshot(from: path) {
+                    SwifTea.dispatch(Action.progressSnapshot(snapshot))
+                }
+                try? await Task.sleep(nanoseconds: 200_000_000)
+            }
+        }
+    }
+
+    private mutating func stopProgressMonitor() {
+        progressMonitorTask?.cancel()
+        progressMonitorTask = nil
+        progressMonitorPath = nil
+        model.progressSnapshot = nil
+    }
+
+    private static func readProgressSnapshot(from path: String) -> ProgressSnapshot? {
+        let url = URL(fileURLWithPath: path)
+        guard let text = try? String(contentsOf: url, encoding: .utf8) else {
+            return nil
+        }
+        let lines = text
+            .split(whereSeparator: \.isNewline)
+            .map { String($0) }
+            .filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+        guard let last = lines.last, let data = last.data(using: .utf8) else {
+            return nil
+        }
+        guard
+            let json = try? JSONSerialization.jsonObject(with: data, options: []),
+            let dict = json as? [String: Any],
+            let step = dict["step"] as? [String: Any]
+        else {
+            return nil
+        }
+        let message = (step["text"] as? String)?.isEmpty == false ? (step["text"] as? String) : nil
+        let rawPercent = (step["percent"] as? Double) ?? (step["percent"] as? Int).map(Double.init)
+        guard let percentValue = rawPercent else { return nil }
+        let normalized = max(0.0, min(1.0, percentValue / 100.0))
+        return ProgressSnapshot(percent: normalized, message: message)
+    }
     struct Model {
         enum Screen: Equatable {
             case menu
@@ -26,6 +92,8 @@ struct SwiftlyTUIApplication: TUIScene {
         var filter: String = ""
         var isFiltering: Bool = false
         var listScrollOffset: Int = 0
+        var progressSnapshot: ProgressSnapshot? = nil
+        var progressLogPath: String? = nil
     }
 
     enum ActionType: String {
@@ -66,6 +134,9 @@ struct SwiftlyTUIApplication: TUIScene {
         case installFocused
         case detailUninstall(ToolchainViewModel)
         case detailUpdate(ToolchainViewModel)
+        case setProgressLogPath(String)
+        case progressSnapshot(ProgressSnapshot)
+        case clearProgressSnapshot
     }
 
     var model: Model = Model()
@@ -76,6 +147,8 @@ struct SwiftlyTUIApplication: TUIScene {
     var overlayPresenter: OverlayPresenter = OverlayPresenter()
     private let theme: SwifTeaTheme = .lumenGlass
     private var spinnerRefreshTask: Task<Void, Never>? = nil
+    private var progressMonitorTask: Task<Void, Never>? = nil
+    private var progressMonitorPath: String? = nil
 
     init(ctx: SwiftlyCoreContext, adapterFactory: @escaping @Sendable (SwiftlyCoreContext) -> CoreActionsAdapter = { CoreActionsAdapter(ctx: $0) }) {
         self.ctx = ctx
@@ -91,7 +164,10 @@ struct SwiftlyTUIApplication: TUIScene {
 
 extension SwiftlyTUIApplication {
     mutating func update(action: Action) {
-        defer { self.updateSpinnerLoopIfNeeded() }
+        defer {
+            self.updateSpinnerLoopIfNeeded()
+            self.updateProgressMonitorIfNeeded()
+        }
         switch action {
         case .showMenu:
         model.screen = .menu
@@ -157,7 +233,9 @@ extension SwiftlyTUIApplication {
                     model.screen = .progress(target.isEmpty ? "Installing latest stable..." : "Installing \(target)...")
                     let controller = self.controller
                     Task.detached {
-                        let session = await controller.install(id: target)
+                        let session = await controller.install(id: target, onProgressLog: { path in
+                            SwifTea.dispatch(Action.setProgressLogPath(path))
+                        })
                         SwifTea.dispatch(Action.operationSession(session))
                     }
                 case .list:
@@ -298,17 +376,24 @@ extension SwiftlyTUIApplication {
             model.screen = .progress("Updating \(toolchain.identifier)...")
             let controller = self.controller
             Task.detached {
-                let session = await controller.update(id: toolchain.identifier)
+                let session = await controller.update(id: toolchain.identifier, onProgressLog: { path in
+                    SwifTea.dispatch(Action.setProgressLogPath(path))
+                })
                 SwifTea.dispatch(Action.operationSession(session))
             }
         case .runSwitch:
             break
+        case .setProgressLogPath(let path):
+            model.progressLogPath = path
         case .operationResult(let msg):
             model.screen = .result(msg)
             model.message = msg
             model.input = ""
         case .operationSession(let session):
             model.lastSession = session
+            if let logPath = session.logPath {
+                model.progressLogPath = logPath
+            }
             switch session.state {
             case .succeeded(let message):
                 model.screen = .result(message)
@@ -332,13 +417,26 @@ extension SwiftlyTUIApplication {
                 model.screen = .progress("Running...")
             }
             queueStatsRefresh()
+            switch session.state {
+            case .pending, .running:
+                break
+            default:
+                model.progressLogPath = nil
+                model.progressSnapshot = nil
+            }
+        case .progressSnapshot(let snapshot):
+            model.progressSnapshot = snapshot
+        case .clearProgressSnapshot:
+            model.progressSnapshot = nil
         case .retryLast:
             guard let session = model.lastSession else { return }
             let target = session.targetIdentifier ?? ""
             model.screen = .progress("Retrying \(target)...")
             let recovery = self.recovery
             Task.detached {
-                let next = await recovery.retryLastOperation(session)
+                let next = await recovery.retryLastOperation(session, onProgressLog: { path in
+                    SwifTea.dispatch(Action.setProgressLogPath(path))
+                })
                 SwifTea.dispatch(Action.operationSession(next))
             }
         case .cancelRecovery:
@@ -418,7 +516,9 @@ extension SwiftlyTUIApplication {
             model.screen = .progress("Installing \(target)...")
             let controller = self.controller
             Task.detached {
-                let session = await controller.install(id: target)
+                let session = await controller.install(id: target, onProgressLog: { path in
+                    SwifTea.dispatch(Action.setProgressLogPath(path))
+                })
                 SwifTea.dispatch(Action.operationSession(session))
             }
         }

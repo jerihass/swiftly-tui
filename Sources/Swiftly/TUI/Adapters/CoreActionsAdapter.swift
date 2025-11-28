@@ -13,9 +13,9 @@ struct CoreActionsAdapter {
     var listOverride: (() async -> [ToolchainViewModel])?
     var listAvailableOverride: (() async -> AvailableToolchainsResult)?
     var switchOverride: ((String) async -> OperationSessionViewModel)?
-    var installOverride: ((String) async -> OperationSessionViewModel)?
+    var installOverride: ((String, @Sendable (String) -> Void) async -> OperationSessionViewModel)?
     var uninstallOverride: ((String) async -> OperationSessionViewModel)?
-    var updateOverride: ((String) async -> OperationSessionViewModel)?
+    var updateOverride: ((String, @Sendable (String) -> Void) async -> OperationSessionViewModel)?
     var pendingOverride: (() async -> OperationSessionViewModel?)?
 
     func listToolchains() async -> [ToolchainViewModel] {
@@ -110,14 +110,15 @@ struct CoreActionsAdapter {
         }
     }
 
-    func installToolchain(id: String) async -> OperationSessionViewModel {
+    func installToolchain(id: String, onProgressLog: @Sendable (String) -> Void = { _ in }) async -> OperationSessionViewModel {
         if let installOverride {
-            return await installOverride(id)
+            return await installOverride(id, onProgressLog)
         }
         return await runOperation(type: .install, target: id) {
             var config = try await Config.load(ctx)
             let version = try await Install.determineToolchainVersion(ctx, version: id.isEmpty ? nil : id, config: &config)
             let progressFile = try await makeProgressFile(prefix: "install", identifier: version.identifier)
+            onProgressLog(progressFile.string)
             _ = try await Install.execute(
                 ctx,
                 version: version,
@@ -153,9 +154,9 @@ struct CoreActionsAdapter {
         }
     }
 
-    func updateToolchain(id: String) async -> OperationSessionViewModel {
+    func updateToolchain(id: String, onProgressLog: @Sendable (String) -> Void = { _ in }) async -> OperationSessionViewModel {
         if let updateOverride {
-            return await updateOverride(id)
+            return await updateOverride(id, onProgressLog)
         }
         return await runOperation(type: .update, target: id) {
             var config = try await Config.load(ctx)
@@ -179,6 +180,7 @@ struct CoreActionsAdapter {
             }
 
             let progressFile = try await makeProgressFile(prefix: "update", identifier: targetVersion.identifier)
+            onProgressLog(progressFile.string)
             _ = try await Install.execute(
                 ctx,
                 version: targetVersion,
