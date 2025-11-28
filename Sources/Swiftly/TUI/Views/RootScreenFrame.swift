@@ -233,7 +233,15 @@ private struct ScreenFrame: TUIView {
         case .input(let type):
             switch type {
             case .install:
-                return InstallView(header: EmptyHeader(), input: model.input, validation: validationMessage(for: type))
+                let validation = validationMessage(for: type)
+                return VStack(spacing: 1, alignment: .leading) {
+                    EmptyHeader()
+                    Text("Install - enter toolchain identifier (blank = latest stable):")
+                    Text("> \(model.input)")
+                    if let validation {
+                        Text(validation).foregroundColor(.red)
+                    }
+                }
             default:
                 return VStack(spacing: 1, alignment: .leading) { Text(AccessibilityStyles.focusIndicator(for: model.input)) }
             }
