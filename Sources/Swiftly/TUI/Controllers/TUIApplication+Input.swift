@@ -4,13 +4,22 @@ import SwifTeaUI
 extension SwiftlyTUIApplication {
     func mapKeyToAction(_ key: KeyEvent) -> Action? {
         switch model.screen {
-        case .menu, .result, .progress:
+        case .menu, .progress:
             switch key {
             case .char("1"):
                 return .start(.list)
             case .char("2"):
                 return .start(.install)
             case .char("0"), .char("q"), .char("Q"):
+                return .exit
+            default:
+                return nil
+            }
+        case .result:
+            switch key {
+            case .char("b"), .char("B"):
+                return .back
+            case .char("q"), .char("Q"), .char("0"):
                 return .exit
             default:
                 return nil
