@@ -123,7 +123,9 @@ extension SwiftlyTUIApplication {
     }
 
     mutating func initializeEffects() {
-        // Start in menu; no preloading.
+        Task {
+            SwifTea.dispatch(SwiftlyTUIApplication.Action.showMenu)
+        }
     }
 
     mutating func handleTerminalResize(from _: TerminalSize, to _: TerminalSize) {}
