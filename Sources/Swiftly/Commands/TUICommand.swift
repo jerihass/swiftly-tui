@@ -17,6 +17,10 @@ struct TUICommand: SwiftlyCommand {
 
     mutating func run(_ ctx: SwiftlyCoreContext) async throws {
         _ = global
+        var ctx = ctx
+        let handler = TUIApplicationOutputHandler()
+        ctx.outputHandler = handler
+        ctx.errorOutputHandler = handler
         let app = SwiftlyTUIApplication(ctx: ctx)
         SwifTea.brew(app)
     }

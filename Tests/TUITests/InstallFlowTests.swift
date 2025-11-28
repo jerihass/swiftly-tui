@@ -16,18 +16,22 @@ final class InstallFlowTests: XCTestCase {
                 metadata: nil
             )
         ], errorMessage: nil)
+        let installSession = OperationSessionViewModel(
+            type: .install,
+            targetIdentifier: "swift-6.0.3",
+            state: .succeeded(message: "Installed swift-6.0.3"),
+            logPath: "/tmp/install.log"
+        )
         let mock = MockAdapterFactory(
             list: { [] },
             listAvailable: { available },
-            switchAction: { _ in OperationSessionViewModel(type: .switchToolchain, targetIdentifier: nil, state: .succeeded(message: "ok"), logPath: nil) },
+            switchAction: { _ in
+                OperationSessionViewModel(type: .switchToolchain, targetIdentifier: nil, state: .succeeded(message: "ok"), logPath: nil)
+            },
             installAction: { target in
                 expectationInstall.fulfill()
-                return OperationSessionViewModel(
-                    type: .install,
-                    targetIdentifier: target,
-                    state: .succeeded(message: "Installed \(target)"),
-                    logPath: "/tmp/install.log"
-                )
+                XCTAssertEqual(target, "swift-6.0.3")
+                return installSession
             }
         )
 
@@ -36,8 +40,7 @@ final class InstallFlowTests: XCTestCase {
         app.update(action: .availableLoaded(available))
         _ = app.mapKeyToAction(.enter).map { app.update(action: $0) }
         // Simulate dispatched session
-        let session = await mock.installAction("swift-6.0.3")
-        app.update(action: .operationSession(session))
+        app.update(action: .operationSession(installSession))
 
         await fulfillment(of: [expectationInstall], timeout: 1.0)
         XCTAssertEqual(app.model.lastSession?.state, .succeeded(message: "Installed swift-6.0.3"))

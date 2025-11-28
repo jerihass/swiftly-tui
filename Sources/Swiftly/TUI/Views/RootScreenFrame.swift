@@ -254,7 +254,10 @@ private struct ScreenFrame: TUIView {
     // MARK: - Status rendering helpers inside frame
     private func statusBar() -> any TUIView {
         StatusBar(
-            leading: [],
+            leading: [
+                StatusBar.Segment("Path: \(statusPath(for: model.screen))", color: theme.primaryText),
+                StatusBar.Segment(statusExitHint(), color: theme.mutedText)
+            ],
             trailing: [
                 StatusBar.Segment(trimmed(KeyboardHints.description(for: hintContext(for: model.screen)), to: 76), color: theme.mutedText)
             ]
@@ -292,6 +295,14 @@ private struct ScreenFrame: TUIView {
         guard text.count > maxLength, maxLength > 3 else { return text }
         let endIndex = text.index(text.startIndex, offsetBy: maxLength - 3)
         return text[text.startIndex..<endIndex] + "..."
+    }
+
+    private func statusPath(for screen: SwiftlyTUIApplication.Model.Screen) -> String {
+        headerLabel(for: screen)
+    }
+
+    private func statusExitHint() -> String {
+        "exit (0/q)"
     }
 }
 
