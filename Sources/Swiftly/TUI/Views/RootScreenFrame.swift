@@ -82,7 +82,8 @@ private struct ScreenFrame: TUIView {
         case .list:
             let filtered = filteredToolchains(model)
             let indexed = Array(filtered.enumerated())
-            let rowSpacing = ListLayoutAdapter.rowSpacing(for: indexed.count)
+            let terminalWidth = LayoutSizing.contentWidth
+            let rowSpacing = ListLayoutAdapter.rowSpacing(for: indexed.count, terminalWidth: terminalWidth)
             if indexed.isEmpty {
                 let empty = ListLayoutAdapter.emptyState()
                 return VStack(spacing: 1, alignment: .leading) {
@@ -91,7 +92,7 @@ private struct ScreenFrame: TUIView {
                 }
             } else {
                 let focused = model.focusedIndex
-                let layout = ListLayoutAdapter.columnLayout()
+                let layout = ListLayoutAdapter.columnLayout(for: terminalWidth)
                 let offsetBinding = Binding<Int>(
                     get: { model.listScrollOffset },
                     set: { SwifTea.dispatch(SwiftlyTUIApplication.Action.setListOffset($0)) }
@@ -148,7 +149,8 @@ private struct ScreenFrame: TUIView {
         case .installList:
             let filtered = filteredAvailableToolchains(model)
             let indexed = Array(filtered.enumerated())
-            let rowSpacing = ListLayoutAdapter.rowSpacing(for: indexed.count)
+            let terminalWidth = LayoutSizing.contentWidth
+            let rowSpacing = ListLayoutAdapter.rowSpacing(for: indexed.count, terminalWidth: terminalWidth)
             if indexed.isEmpty {
                 return VStack(spacing: 1, alignment: .leading) {
                     Text("No available toolchains fetched.")
@@ -157,7 +159,7 @@ private struct ScreenFrame: TUIView {
                 }
             } else {
                 let focused = model.focusedIndex
-                let layout = ListLayoutAdapter.columnLayout()
+                let layout = ListLayoutAdapter.columnLayout(for: terminalWidth)
                 let offsetBinding = Binding<Int>(
                     get: { model.listScrollOffset },
                     set: { SwifTea.dispatch(SwiftlyTUIApplication.Action.setListOffset($0)) }
@@ -261,13 +263,14 @@ private struct ScreenFrame: TUIView {
 
     // MARK: - Status rendering helpers inside frame
     private func statusBar() -> any TUIView {
-        StatusBar(
+        let hintMaxLength = max(20, LayoutSizing.contentWidth - 24)
+        return StatusBar(
             leading: [
-                StatusBar.Segment("Path: \(statusPath(for: model.screen))", color: theme.primaryText),
-                StatusBar.Segment(statusExitHint(), color: theme.mutedText)
+                //StatusBar.Segment("Path: \(statusPath(for: model.screen))", color: theme.primaryText),
+                //StatusBar.Segment(statusExitHint(), color: theme.mutedText)
             ],
             trailing: [
-                StatusBar.Segment(trimmed(KeyboardHints.description(for: hintContext(for: model.screen)), to: 76), color: theme.mutedText)
+                StatusBar.Segment(trimmed(KeyboardHints.description(for: hintContext(for: model.screen)), to: hintMaxLength), color: theme.mutedText)
             ]
         )
     }
