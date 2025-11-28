@@ -31,14 +31,12 @@ struct SwiftlyTUIApplication: TUIScene {
     enum ActionType: String {
         case list = "List"
         case install = "Install"
-        case uninstall = "Uninstall"
-        case update = "Update"
-        case exit = "Exit"
     }
 
     enum Action {
         case showMenu
         case start(ActionType)
+        case statsLoaded([ToolchainViewModel])
         case inputChar(Character)
         case backspace
         case submit
@@ -66,6 +64,8 @@ struct SwiftlyTUIApplication: TUIScene {
         case switchFocused
         case startManualInstall
         case installFocused
+        case detailUninstall(ToolchainViewModel)
+        case detailUpdate(ToolchainViewModel)
     }
 
     var model: Model = Model()
@@ -100,13 +100,17 @@ extension SwiftlyTUIApplication {
         model.isFiltering = false
         model.listScrollOffset = 0
         model.focusedIndex = nil
-        model.availableToolchains = []
-        let controller = self.controller
-        Task.detached {
-            if let pending = await controller.loadPendingSession() {
-                SwifTea.dispatch(Action.operationSession(pending))
+            model.availableToolchains = []
+            let controller = self.controller
+            Task.detached {
+                if let pending = await controller.loadPendingSession() {
+                    SwifTea.dispatch(Action.operationSession(pending))
+                }
             }
-        }
+            Task.detached {
+                let list = await controller.list()
+                SwifTea.dispatch(Action.statsLoaded(list))
+            }
         case .start(let type):
             switch type {
             case .list:
@@ -131,13 +135,6 @@ extension SwiftlyTUIApplication {
                     let result = await controller.listAvailable()
                     SwifTea.dispatch(Action.availableLoaded(result))
                 }
-            case .uninstall, .update:
-                pushCurrentScreen()
-                model.screen = .input(type)
-                model.input = ""
-                model.message = "Enter toolchain identifier for \(type.rawValue.lowercased()):"
-            case .exit:
-                break
             }
         case .inputChar(let ch):
             model.input.append(ch)
@@ -164,26 +161,7 @@ extension SwiftlyTUIApplication {
                         let session = await controller.install(id: target)
                         SwifTea.dispatch(Action.operationSession(session))
                     }
-                case .uninstall:
-                    guard !value.isEmpty else {
-                        model.message = "Input cannot be empty."
-                        return
-                    }
-                    model.screen = .progress("Removing \(value)...")
-                    let controller = self.controller
-                    Task.detached {
-                        let session = await controller.remove(id: value)
-                        SwifTea.dispatch(Action.operationSession(session))
-                    }
-                case .update:
-                    let target = value
-                    model.screen = .progress(target.isEmpty ? "Updating in-use toolchain..." : "Updating \(target)...")
-                    let controller = self.controller
-                    Task.detached {
-                        let session = await controller.update(id: target)
-                        SwifTea.dispatch(Action.operationSession(session))
-                    }
-                case .list, .exit:
+                case .list:
                     break
                 }
             default:
@@ -229,6 +207,8 @@ extension SwiftlyTUIApplication {
             model.message = filtered.isEmpty
                 ? "No installed toolchains. Choose Install to add one."
                 : "Installed toolchains. Enter opens detail, s switches."
+        case .statsLoaded(let list):
+            model.toolchains = ListLayoutAdapter.sort(list)
         case .loadAvailable:
             model.screen = .progress("Loading available toolchains...")
             let controller = self.controller
@@ -266,7 +246,7 @@ extension SwiftlyTUIApplication {
             let selected = filtered[idx]
             model.focusedIndex = idx
             model.screen = .detail(selected)
-            model.message = "Selected \(selected.identifier). Press 's' to switch, 'b' to go back."
+            model.message = "Selected \(selected.identifier). Press 's' to switch, 'u' uninstall, 'p' update, 'b' go back."
         case .moveFocus(let delta):
             let filtered = currentFilteredToolchains(model)
             guard !filtered.isEmpty else { return }
@@ -305,6 +285,20 @@ extension SwiftlyTUIApplication {
             let controller = self.controller
             Task.detached {
                 let session = await controller.switchToolchain(id: selected.identifier)
+                SwifTea.dispatch(Action.operationSession(session))
+            }
+        case .detailUninstall(let toolchain):
+            model.screen = .progress("Removing \(toolchain.identifier)...")
+            let controller = self.controller
+            Task.detached {
+                let session = await controller.remove(id: toolchain.identifier)
+                SwifTea.dispatch(Action.operationSession(session))
+            }
+        case .detailUpdate(let toolchain):
+            model.screen = .progress("Updating \(toolchain.identifier)...")
+            let controller = self.controller
+            Task.detached {
+                let session = await controller.update(id: toolchain.identifier)
                 SwifTea.dispatch(Action.operationSession(session))
             }
         case .runSwitch:

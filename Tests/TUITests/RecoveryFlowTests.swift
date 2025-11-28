@@ -37,7 +37,7 @@ final class RecoveryFlowTests: XCTestCase {
         )
 
         var app = TUITestHarness.makeApp(adapterFactory: mock)
-        _ = app.mapKeyToAction(.char("3")).map { app.update(action: $0) }
+        _ = app.mapKeyToAction(.char("2")).map { app.update(action: $0) }
         app.model.input = "swift-err"
         let firstSession = await mock.installAction("swift-err")
         app.update(action: .operationSession(firstSession))
@@ -66,7 +66,7 @@ final class RecoveryFlowTests: XCTestCase {
         )
 
         var app = TUITestHarness.makeApp(adapterFactory: mock)
-        _ = app.mapKeyToAction(.char("3")).map { app.update(action: $0) }
+        _ = app.mapKeyToAction(.char("2")).map { app.update(action: $0) }
         app.model.input = "swift-err"
         let session = await mock.installAction("swift-err")
         app.update(action: .operationSession(session))

@@ -20,9 +20,13 @@ final class UpdateFlowTests: XCTestCase {
         )
 
         var app = TUITestHarness.makeApp(adapterFactory: mock)
-        _ = app.mapKeyToAction(.char("5")).map { app.update(action: $0) }
-        app.model.input = "swift-6.0.2"
-        let session = await mock.updateAction("swift-6.0.2")
+        let toolchain = ToolchainFixtures.sample(id: "swift-6.0.2")
+        app.model.toolchains = [toolchain]
+        app.model.screen = .detail(toolchain)
+        if let action = app.mapKeyToAction(.char("p")) {
+            app.update(action: action)
+        }
+        let session = await mock.updateAction(toolchain.identifier)
         app.update(action: .operationSession(session))
         await fulfillment(of: [expectationUpdate], timeout: 1.0)
 

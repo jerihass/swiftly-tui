@@ -1,3 +1,4 @@
+import Foundation
 import SwifTeaUI
 
 typealias ToolchainRow = (offset: Int, element: ToolchainViewModel)
@@ -56,9 +57,8 @@ private struct ScreenFrame: TUIView {
             return VStack(spacing: 1, alignment: .leading) {
                 Text("1) List & switch toolchains")
                 Text("2) Install toolchain")
-                Text("3) Uninstall toolchain")
-                Text("4) Update toolchain")
                 Text("0) Exit")
+                menuStatsView()
             }
         case .progress(let message):
             let running = model.lastSession
@@ -234,11 +234,7 @@ private struct ScreenFrame: TUIView {
             switch type {
             case .install:
                 return InstallView(header: EmptyHeader(), input: model.input, validation: validationMessage(for: type))
-            case .update:
-                return UpdateView(header: EmptyHeader(), input: model.input, validation: validationMessage(for: type))
-            case .uninstall:
-                return RemoveView(header: EmptyHeader(), input: model.input, validation: validationMessage(for: type))
-            case .list, .exit:
+            default:
                 return VStack(spacing: 1, alignment: .leading) { Text(AccessibilityStyles.focusIndicator(for: model.input)) }
             }
         }
@@ -247,8 +243,6 @@ private struct ScreenFrame: TUIView {
     private func validationMessage(for type: SwiftlyTUIApplication.ActionType) -> String? {
         let defaults: [SwiftlyTUIApplication.ActionType: String] = [
             .install: "Enter toolchain identifier for install:",
-            .update: "Enter toolchain identifier for update:",
-            .uninstall: "Enter toolchain identifier for uninstall:"
         ]
         guard let expected = defaults[type] else { return nil }
         let current = model.message
@@ -322,4 +316,40 @@ private struct FixedSpace: TUIView {
         let rows = max(1, height)
         return Array(repeating: line, count: rows).joined(separator: "\n")
     }
+}
+
+private extension ScreenFrame {
+    func menuStatsView() -> some TUIView {
+        let installedCount = model.toolchains.count
+        let newestInstall = latestInstallDate()
+        let newestText = formattedDate(newestInstall)
+        let xcodeInstalled = model.toolchains.contains { $0.identifier == "xcode" }
+        let xcodeText = xcodeInstalled ? "installed" : "not installed"
+        return VStack(spacing: 0, alignment: .leading) {
+            Text("Installed toolchains: \(installedCount)")
+                .foregroundColor(theme.primaryText)
+            Text("Newest install: \(newestText)")
+                .foregroundColor(theme.mutedText)
+            Text("Xcode toolchain: \(xcodeText)")
+                .foregroundColor(xcodeInstalled ? theme.success : theme.mutedText)
+        }
+        .padding(1)
+        .border(padding: 1, color: theme.frameBorder, bold: false)
+    }
+
+    private func latestInstallDate() -> Date? {
+        model.toolchains.compactMap { $0.metadata?.installedAt }.max()
+    }
+
+    private func formattedDate(_ date: Date?) -> String {
+        guard let date else { return "unknown" }
+        return Self.statsDateFormatter.string(from: date)
+    }
+
+    private static let statsDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter
+    }()
 }

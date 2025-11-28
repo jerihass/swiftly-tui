@@ -3,10 +3,11 @@ import SwifTeaUI
 @testable import Swiftly
 
 final class RemoveFlowTests: XCTestCase {
-    func testRemoveFlowCompletes() async {
+    func testDetailUninstallTriggersAdapter() async {
         let expectationRemove = expectation(description: "remove invoked")
+        let toolchain = ToolchainFixtures.sample(id: "swift-6.0.1")
         let mock = MockAdapterFactory(
-            list: { [] },
+            list: { [toolchain] },
             switchAction: { _ in OperationSessionViewModel(type: .switchToolchain, targetIdentifier: nil, state: .succeeded(message: "ok"), logPath: nil) },
             uninstallAction: { target in
                 expectationRemove.fulfill()
@@ -20,9 +21,13 @@ final class RemoveFlowTests: XCTestCase {
         )
 
         var app = TUITestHarness.makeApp(adapterFactory: mock)
-        _ = app.mapKeyToAction(.char("4")).map { app.update(action: $0) }
-        app.model.input = "swift-6.0.1"
-        let session = await mock.uninstallAction("swift-6.0.1")
+        app.model.toolchains = [toolchain]
+        app.model.screen = .detail(toolchain)
+        if let action = app.mapKeyToAction(.char("u")) {
+            app.update(action: action)
+        }
+
+        let session = await mock.uninstallAction(toolchain.identifier)
         app.update(action: .operationSession(session))
         await fulfillment(of: [expectationRemove], timeout: 1.0)
 

@@ -10,10 +10,6 @@ extension SwiftlyTUIApplication {
                 return .start(.list)
             case .char("2"):
                 return .start(.install)
-            case .char("3"):
-                return .start(.uninstall)
-            case .char("4"):
-                return .start(.update)
             case .char("0"), .char("q"), .char("Q"):
                 return .exit
             default:
@@ -92,10 +88,14 @@ extension SwiftlyTUIApplication {
             default:
                 return nil
             }
-        case .detail:
+        case .detail(let toolchain):
             switch key {
             case .char("s"), .char("S"):
                 return .confirmSwitchFromDetail
+            case .char("u"), .char("U"):
+                return .detailUninstall(toolchain)
+            case .char("p"), .char("P"):
+                return .detailUpdate(toolchain)
             case .char("b"), .char("B"):
                 return .back
             default:

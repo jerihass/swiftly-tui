@@ -44,15 +44,6 @@ final class InstallFlowTests: XCTestCase {
         XCTAssertEqual(app.model.screen, .result("Installed swift-6.0.3"))
     }
 
-    func testRemoveRequiresIdentifier() {
-        var app = TUITestHarness.makeApp()
-        _ = app.mapKeyToAction(.char("3")).map { app.update(action: $0) }
-        app.model.input = "   "
-        app.update(action: .submit)
-        XCTAssertEqual(app.model.message, "Input cannot be empty.")
-        XCTAssertEqual(app.model.screen, .input(.uninstall))
-    }
-
     func testInstallRejectsInvalidIdentifier() {
         var app = TUITestHarness.makeApp()
         _ = app.mapKeyToAction(.char("2")).map { app.update(action: $0) }

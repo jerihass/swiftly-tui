@@ -32,14 +32,22 @@ final class TUIActionsContractTests: XCTestCase {
         app.update(action: .operationSession(await mock.installAction("install-me")))
         XCTAssertEqual(app.model.lastSession?.type, .install)
 
-        _ = app.mapKeyToAction(.char("4")).map { app.update(action: $0) }
-        app.model.input = "update-me"
-        app.update(action: .operationSession(await mock.updateAction("update-me")))
+        let updateToolchain = ToolchainFixtures.sample(id: "update-me")
+        app.model.toolchains = [updateToolchain]
+        app.model.screen = .detail(updateToolchain)
+        if let action = app.mapKeyToAction(.char("p")) {
+            app.update(action: action)
+        }
+        app.update(action: .operationSession(await mock.updateAction(updateToolchain.identifier)))
         XCTAssertEqual(app.model.lastSession?.type, .update)
 
-        _ = app.mapKeyToAction(.char("3")).map { app.update(action: $0) }
-        app.model.input = "remove-me"
-        app.update(action: .operationSession(await mock.uninstallAction("remove-me")))
+        let removeToolchain = ToolchainFixtures.sample(id: "remove-me")
+        app.model.toolchains = [removeToolchain]
+        app.model.screen = .detail(removeToolchain)
+        if let action = app.mapKeyToAction(.char("u")) {
+            app.update(action: action)
+        }
+        app.update(action: .operationSession(await mock.uninstallAction(removeToolchain.identifier)))
         XCTAssertEqual(app.model.lastSession?.type, .remove)
     }
 }

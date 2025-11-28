@@ -9,8 +9,6 @@ final class MenuActionsTests: XCTestCase {
 
         assertStart(.list, for: app.mapKeyToAction(.char("1")))
         assertStart(.install, for: app.mapKeyToAction(.char("2")))
-        assertStart(.uninstall, for: app.mapKeyToAction(.char("3")))
-        assertStart(.update, for: app.mapKeyToAction(.char("4")))
         assertExit(app.mapKeyToAction(.char("0")))
         assertExit(app.mapKeyToAction(.char("q")))
     }
