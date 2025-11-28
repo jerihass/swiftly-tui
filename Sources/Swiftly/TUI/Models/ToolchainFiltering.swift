@@ -1,7 +1,8 @@
 import Foundation
 
 enum LayoutSizing {
-    static let contentWidth: Int = 72
+    static let frameWidth: Int = 120
+    static let contentWidth: Int = frameWidth - 4
     static let baseHeight: Int = 18
     // Account for filter line + table header/divider; the remainder is usable data rows.
     static let listViewport: Int = max(8, baseHeight - 7) // 18 -> ~9 data rows

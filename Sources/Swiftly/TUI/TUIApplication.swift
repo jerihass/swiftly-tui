@@ -74,7 +74,7 @@ struct SwiftlyTUIApplication: TUIScene {
     var controller: CoreActionsController
     var recovery: OperationRecoveryController
     var overlayPresenter: OverlayPresenter = OverlayPresenter()
-    private let theme: SwifTeaTheme = .basic
+    private let theme: SwifTeaTheme = .lumenGlass
 
     init(ctx: SwiftlyCoreContext, adapterFactory: @escaping @Sendable (SwiftlyCoreContext) -> CoreActionsAdapter = { CoreActionsAdapter(ctx: $0) }) {
         self.ctx = ctx
